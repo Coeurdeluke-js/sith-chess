@@ -1,0 +1,450 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+@layer components {
+  .chess-board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    aspect-ratio: 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  .chess-piece {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .chess-piece svg {
+    width: 80%;
+    height: 80%;
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  .board-container {
+    max-width: 90vh;
+    max-height: 90vh;
+    width: 90vh;
+    height: 90vh;
+    min-width: 600px;
+    min-height: 600px;
+  }
+
+  .sidebar-icon {
+    width: 2rem;
+    height: 2rem;
+    color: rgb(138 138 138);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-icon:hover {
+    color: rgb(250 250 250);
+    transform: scale(1.1);
+  }
+
+  .tooltip {
+    position: absolute;
+    left: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgb(26 26 26);
+    color: rgb(250 250 250);
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    z-index: 50;
+    max-width: fit-content;
+    min-width: max-content;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgb(45 45 45);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 0.5rem solid transparent;
+    border-bottom: 0.5rem solid transparent;
+    border-right: 0.5rem solid rgb(26 26 26);
+  }
+
+  .tooltip.show {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.02);
+  }
+
+  /* Animaciones suaves y armónicas */
+  .animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
+  }
+
+  /* Animaciones para movimiento de piezas */
+  .animate-slide-out {
+    animation: slideOut 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  @keyframes slideOut {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+
+  @keyframes slideIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Animación de elevación para piezas en movimiento */
+  .chess-piece-moving {
+    animation: pieceMove 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    z-index: 20;
+  }
+
+  @keyframes pieceMove {
+    0% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    50% {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+    100% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+  }
+
+  /* Estilos para las casillas del tablero con transiciones suaves */
+  .chess-square {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .chess-square:hover {
+    transform: scale(1.05);
+    z-index: 5;
+  }
+
+  .chess-square[data-selected="true"] {
+    box-shadow: inset 0 0 0 4px #ec4d58;
+    z-index: 10;
+    transform: scale(1.02);
+  }
+
+  .chess-square[data-valid-move="true"]::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20%;
+    height: 20%;
+    background: radial-gradient(circle, rgba(236, 77, 88, 0.15) 0%, rgba(236, 77, 88, 0.05) 60%, transparent 100%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: validMovePulse 3s ease-in-out infinite;
+  }
+
+  .chess-square[data-capture="true"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid rgba(236, 77, 88, 0.3);
+    border-radius: 2px;
+    pointer-events: none;
+    animation: captureGlow 2s ease-in-out infinite;
+  }
+
+  .chess-square[data-last-move="true"] {
+    animation: lastMoveHighlight 3s ease-out;
+  }
+
+  @keyframes validMovePulse {
+    0%, 100% {
+      opacity: 0.15;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      opacity: 0.25;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+  }
+
+  @keyframes captureGlow {
+    0%, 100% {
+      border-color: #ec4d58;
+      box-shadow: 0 0 10px rgba(236, 77, 88, 0.3);
+    }
+    50% {
+      border-color: #ff6b7a;
+      box-shadow: 0 0 20px rgba(236, 77, 88, 0.6);
+    }
+  }
+
+  @keyframes lastMoveHighlight {
+    0% {
+      background-color: rgba(236, 77, 88, 0.3);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  /* Asegurar que el tablero mantenga su tamaño */
+  .chess-board {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 600px !important;
+    min-height: 600px !important;
+  }
+
+  /* Ajustes específicos para piezas SVG */
+  .chess-piece svg {
+    width: 80% !important;
+    height: 80% !important;
+    max-width: 90% !important;
+    max-height: 90% !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Efectos especiales para piezas seleccionadas */
+  .chess-piece[data-selected="true"] svg {
+    filter: drop-shadow(0 4px 8px rgba(236, 77, 88, 0.4));
+    transform: scale(1.05);
+  }
+
+  /* Transiciones suaves para botones */
+  button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  button:active {
+    transform: translateY(0);
+    transition: all 0.1s ease;
+  }
+
+  /* Scrollbar personalizado para el panel de movimientos */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: rgba(45, 45, 45, 0.3);
+    border-radius: 3px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(236, 77, 88, 0.5);
+    border-radius: 3px;
+    transition: background 0.3s ease;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(236, 77, 88, 0.7);
+  }
+
+  /* Efectos de focus para accesibilidad */
+  button:focus,
+  .chess-square:focus {
+    outline: 2px solid #ec4d58;
+    outline-offset: 2px;
+  }
+
+  /* Transiciones para el estado del juego */
+  .game-state-transition {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Efectos de hover para el tablero */
+  .chess-board:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Animación para el indicador de pensamiento */
+  .thinking-indicator {
+    animation: thinkingPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes thinkingPulse {
+    0%, 100% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
+  /* Eliminar sombras de todas las imágenes */
+  img {
+    filter: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Eliminar sombras específicamente de los logos */
+  .logo-image {
+    filter: none !important;
+    box-shadow: none !important;
+    -webkit-filter: none !important;
+  }
+
+  /* Animaciones para transición de mensajes */
+  .message-fade-out {
+    animation: messageFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .message-fade-in {
+    animation: messageFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes messageFadeOut {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  @keyframes messageFadeIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 768px) {
+    .board-container {
+      min-width: 300px;
+      min-height: 300px;
+      width: 90vw;
+      height: 90vw;
+      max-width: 90vw;
+      max-height: 90vw;
+    }
+
+    .chess-board {
+      min-width: 300px !important;
+      min-height: 300px !important;
+    }
+
+    .tooltip {
+      left: 2.75rem;
+      max-width: 220px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+    }
+  }
+} 
