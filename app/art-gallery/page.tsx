@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 
 export default function ArtGalleryPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
 
   // Imágenes reales de la carpeta art-gallery
   const galleryImages = [
@@ -18,22 +19,36 @@ export default function ArtGalleryPage() {
     { id: '6', src: '/art-gallery/Image_fx (54) (1).svg' }
   ]
 
+  // Función para ir a la siguiente imagen
+  const nextImage = useCallback(() => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === galleryImages.length - 1 ? 0 : prevIndex + 1
+    )
+  }, [galleryImages.length])
+
   // Carrusel automático
   useEffect(() => {
+    if (isPaused) return
+
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) =>
-        prevIndex === galleryImages.length - 1 ? 0 : prevIndex + 1
-      )
+      nextImage()
     }, 4000) // Cambia cada 4 segundos
 
     return () => clearInterval(interval)
-  }, [galleryImages.length])
+  }, [nextImage, isPaused])
 
-  // Controles manuales eliminados según requerimiento (flechas)
-
-  const goToImage = (index: number) => {
+  // Función para ir a una imagen específica
+  const goToImage = useCallback((index: number) => {
     setCurrentImageIndex(index)
-  }
+    // Pausar temporalmente el carrusel cuando el usuario interactúa
+    setIsPaused(true)
+    setTimeout(() => setIsPaused(false), 3000) // Reanudar después de 3 segundos
+  }, [])
+
+  // Función para manejar errores de carga de imagen
+  const handleImageError = useCallback((index: number) => {
+    console.error(`Error loading image ${index + 1}: ${galleryImages[index].src}`)
+  }, [galleryImages])
 
   return (
     <div className="min-h-screen bg-primary text-text">
@@ -60,7 +75,9 @@ export default function ArtGalleryPage() {
                 alt={`Arte Sith ${currentImageIndex + 1}`}
                 width={800}
                 height={600}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain transition-opacity duration-500"
+                priority
+                onError={() => handleImageError(currentImageIndex)}
               />
             </div>
 
@@ -70,11 +87,12 @@ export default function ArtGalleryPage() {
                 <button
                   key={index}
                   onClick={() => goToImage(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
                     index === currentImageIndex
                       ? 'bg-[#ec4d58] scale-125'
                       : 'bg-white bg-opacity-50 hover:bg-opacity-75'
                   }`}
+                  aria-label={`Ir a imagen ${index + 1}`}
                 />
               ))}
             </div>
@@ -85,6 +103,11 @@ export default function ArtGalleryPage() {
             <p className="text-textMuted">
               {currentImageIndex + 1} de {galleryImages.length}
             </p>
+            {isPaused && (
+              <p className="text-xs text-textMuted mt-2">
+                Carrusel pausado - se reanudará automáticamente
+              </p>
+            )}
           </div>
         </div>
       </div>

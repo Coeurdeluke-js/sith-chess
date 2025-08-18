@@ -1,6 +1,7 @@
 'use client'
 
 import { Sidebar } from '@/components/Sidebar'
+import { Downbar } from '@/components/Downbar'
 import { useGame } from '@/contexts/GameContext'
 
 export default function ArtGalleryLayout({
@@ -17,9 +18,14 @@ export default function ArtGalleryLayout({
         gameStarted={gameStarted}
         onStopGame={stopGame}
       />
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pb-32 md:pb-0">
         {children}
       </main>
+      <Downbar 
+        onNewGame={startNewGame}
+        gameStarted={gameStarted}
+        onStopGame={stopGame}
+      />
     </div>
   )
 }

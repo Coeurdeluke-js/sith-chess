@@ -4,14 +4,17 @@ import React, { createContext, useContext, useState, useCallback } from 'react'
 
 interface GameContextType {
   gameStarted: boolean
+  selectedDifficulty: string
   startNewGame: () => void
   stopGame: () => void
+  setDifficulty: (difficulty: string) => void
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined)
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [gameStarted, setGameStarted] = useState(false)
+  const [selectedDifficulty, setSelectedDifficulty] = useState('warrior') // Default to Warrior
 
   const startNewGame = useCallback(() => {
     setGameStarted(true)
@@ -21,8 +24,18 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     setGameStarted(false)
   }, [])
 
+  const setDifficulty = useCallback((difficulty: string) => {
+    setSelectedDifficulty(difficulty)
+  }, [])
+
   return (
-    <GameContext.Provider value={{ gameStarted, startNewGame, stopGame }}>
+    <GameContext.Provider value={{ 
+      gameStarted, 
+      selectedDifficulty, 
+      startNewGame, 
+      stopGame, 
+      setDifficulty 
+    }}>
       {children}
     </GameContext.Provider>
   )
