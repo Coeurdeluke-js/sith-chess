@@ -17,8 +17,8 @@ export interface DifficultyLevel {
 export const difficultyLevels: DifficultyLevel[] = [
   {
     id: 'iniciado',
-    name: 'Iniciado',
-    description: 'Apertura al camino y potencial puro. Media luna abierta hacia arriba, confrontación de la Persona.',
+    name: 'Iniciado del Mercado',
+    description: 'Un trader que apenas comienza su viaje. Como un peón en ajedrez, solo ve hacia adelante sin comprender la estrategia del tablero financiero.',
     insignia: '/insignias/1-iniciados.png',
     color: '#FAFAFA',
     aiBehavior: {
@@ -32,8 +32,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     id: 'acolito',
-    name: 'Acólito',
-    description: 'Primer enfrentamiento con la sombra interna. Triángulo invertido con núcleo luminoso, iluminación de verdades ocultas.',
+    name: 'Acólito del Trading',
+    description: 'Un trader que ha experimentado sus primeras pérdidas y victorias. Comienza a entender que el mercado tiene patrones, como un caballo que aprende a moverse en L.',
     insignia: '/insignias/2-acolitos.png',
     color: '#FFD447',
     aiBehavior: {
@@ -47,8 +47,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     id: 'warrior',
-    name: 'Warrior',
-    description: 'Integración de fuerzas opuestas: disciplina y pasión. Dos sables cruzados, energía controlada y crecimiento.',
+    name: 'Guerrero del Mercado',
+    description: 'Un trader que ha desarrollado disciplina y control emocional. Sabe cuándo atacar y cuándo defender, como un alfil que domina las diagonales del tablero.',
     insignia: '/insignias/3-warriors.png',
     color: '#3ED598',
     aiBehavior: {
@@ -62,8 +62,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     id: 'lord',
-    name: 'Lord',
-    description: 'Visión estratégica y comprensión de patrones. Ojo Sith estilizado, autoridad y percepción elevada.',
+    name: 'Lord del Capital',
+    description: 'Un trader que ha acumulado riqueza y experiencia. Su visión estratégica es como la de una torre: directa, poderosa y capaz de controlar filas y columnas del mercado.',
     insignia: '/insignias/4-lords.png',
     color: '#4671D5',
     aiBehavior: {
@@ -77,8 +77,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     id: 'darth',
-    name: 'Darth',
-    description: 'Transmutación de la sombra en poder. Ouroboros circular con llama central, dominio de energía destructiva y creativa.',
+    name: 'Darth del Trading',
+    description: 'Un trader que ha dominado la psicología del mercado. Su estrategia es como la de una reina: versátil, agresiva y capaz de cambiar el juego en un solo movimiento.',
     insignia: '/insignias/5-darths.png',
     color: '#EC4D58',
     aiBehavior: {
@@ -92,8 +92,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     id: 'maestro',
-    name: 'Maestro',
-    description: 'Integración plena del Self y maestría interior. Mandala cerrado complejo, equilibrio y control absoluto.',
+    name: 'Maestro del Mercado',
+    description: 'El trader supremo que ha integrado todas las lecciones del mercado. Como un rey en ajedrez, su supervivencia es primordial, pero su influencia es absoluta. Ha trascendido la codicia y el miedo.',
     insignia: '/insignias/6-maestros.png',
     color: '#8A8A8A',
     aiBehavior: {

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { BookOpen, Target, Zap, Shield, Users, Trophy } from 'lucide-react'
+import { ChessPieceMini } from '@/components/ChessPieceMini'
 
 export default function AyudaPage() {
   return (
@@ -40,28 +41,32 @@ export default function AyudaPage() {
         <div className="bg-secondary rounded-lg border border-board-border p-8 mb-8">
           <h2 className="text-2xl font-semibold text-text mb-6 flex items-center">
             <Target className="w-6 h-6 mr-3 text-[#ec4d58]" />
-            Las Armas de la Guerra
+            Las Piezas del Ejército
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Rey */}
             <div className="bg-accent rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3">El Rey - Tu Corazón</h3>
+              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3 flex items-center">
+                <ChessPieceMini type="k" color="w" size="md" />
+                El Rey - Tu Comandante
+              </h3>
               <p className="text-textMuted mb-3">
-                El Rey es tu vida. Se mueve una casilla en cualquier dirección. Si el Rey cae, 
-                la batalla termina. Protégelo a toda costa.
+                El Rey es tu pieza más valiosa. Se mueve una casilla en cualquier dirección. Si el Rey cae, la batalla termina. Protégelo como si fuera tu vida.
               </p>
               <div className="text-sm text-textMuted">
-                <strong>Movimiento:</strong> Una casilla en cualquier dirección
+                <strong>Movimiento:</strong> Una casilla en cualquier dirección (horizontal, vertical o diagonal)
               </div>
             </div>
 
             {/* Reina */}
             <div className="bg-accent rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3">La Reina - Tu Poder</h3>
+              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3 flex items-center">
+                <ChessPieceMini type="q" color="w" size="md" />
+                La Reina - Tu Arma Más Poderosa
+              </h3>
               <p className="text-textMuted mb-3">
-                La Reina es tu arma más poderosa. Se mueve en línea recta en cualquier dirección. 
-                Úsala sabiamente, pero no la expongas innecesariamente.
+                La Reina combina el poder de la Torre y el Alfil. Se mueve cualquier número de casillas en línea recta. Es tu pieza más versátil y letal.
               </p>
               <div className="text-sm text-textMuted">
                 <strong>Movimiento:</strong> Cualquier número de casillas en línea recta
@@ -70,10 +75,12 @@ export default function AyudaPage() {
 
             {/* Torre */}
             <div className="bg-accent rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3">La Torre - Tu Fortaleza</h3>
+              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3 flex items-center">
+                <ChessPieceMini type="r" color="w" size="md" />
+                La Torre - Tu Fortaleza
+              </h3>
               <p className="text-textMuted mb-3">
-                La Torre se mueve en línea recta horizontal y vertical. Es excelente para controlar 
-                columnas y filas abiertas.
+                La Torre se mueve en líneas rectas horizontales y verticales. Es excelente para controlar columnas y filas abiertas, y fundamental en los finales.
               </p>
               <div className="text-sm text-textMuted">
                 <strong>Movimiento:</strong> Cualquier número de casillas horizontal o vertical
@@ -82,10 +89,12 @@ export default function AyudaPage() {
 
             {/* Alfil */}
             <div className="bg-accent rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3">El Alfil - Tu Visión</h3>
+              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3 flex items-center">
+                <ChessPieceMini type="b" color="w" size="md" />
+                El Alfil - Tu Arquero
+              </h3>
               <p className="text-textMuted mb-3">
-                El Alfil se mueve en diagonal. Cada jugador tiene dos alfiles, uno en casillas 
-                claras y otro en oscuras. Nunca pueden cambiar de color.
+                El Alfil se mueve en diagonales. Controla casillas del mismo color durante toda la partida. Dos Alfiles trabajando juntos son una fuerza devastadora.
               </p>
               <div className="text-sm text-textMuted">
                 <strong>Movimiento:</strong> Cualquier número de casillas en diagonal
@@ -94,7 +103,10 @@ export default function AyudaPage() {
 
             {/* Caballo */}
             <div className="bg-accent rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3">El Caballo - Tu Agilidad</h3>
+              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3 flex items-center">
+                <ChessPieceMini type="n" color="w" size="md" />
+                El Caballo - Tu Agilidad
+              </h3>
               <p className="text-textMuted mb-3">
                 El Caballo se mueve en forma de &quot;L&quot;: dos casillas en una dirección y una 
                 perpendicular. Es la única pieza que puede saltar sobre otras.
@@ -106,7 +118,10 @@ export default function AyudaPage() {
 
             {/* Peón */}
             <div className="bg-accent rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3">El Peón - Tu Ejército</h3>
+              <h3 className="text-xl font-semibold text-[#ec4d58] mb-3 flex items-center">
+                <ChessPieceMini type="p" color="w" size="md" />
+                El Peón - Tu Ejército
+              </h3>
               <p className="text-textMuted mb-3">
                 Los peones avanzan una casilla hacia adelante, pero capturan en diagonal. En su 
                 primer movimiento pueden avanzar dos casillas. Al llegar al final del tablero, 

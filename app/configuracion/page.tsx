@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { DifficultySelector } from '@/components/DifficultySelector'
+import { AudioSettings } from '@/components/AudioSettings'
 import { useGame } from '@/contexts/GameContext'
 import { Settings, Monitor, Gamepad2, Shield, Bell, User } from 'lucide-react'
 import Image from 'next/image'
@@ -21,9 +22,9 @@ export default function ConfiguracionPage() {
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-light text-[#ec4d58] mb-8">Sistema de Emblemas Crypto Force</h1>
+        <h1 className="text-3xl font-light text-[#ec4d58] mb-8">Sistema de Emblemas del Trading Sith</h1>
         <p className="text-textMuted text-lg mb-8 text-center max-w-2xl mx-auto">
-          Configura tu arquetipo personal y ajusta los parámetros de tu viaje de individuación en el ajedrez Sith
+          Configura tu nivel de dominio en el trading y el ajedrez, donde cada emblema representa una etapa en tu evolución como trader estratégico
         </p>
 
         {/* Pestañas */}
@@ -51,9 +52,9 @@ export default function ConfiguracionPage() {
         <div className="bg-secondary rounded-lg border border-board-border p-6">
           {activeTab === 'emblemas' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-text mb-4">Tu Arquetipo Personal</h2>
+              <h2 className="text-xl font-semibold text-text mb-4">Tu Nivel de Dominio en Trading</h2>
               <p className="text-textMuted mb-6">
-                Cada emblema representa una etapa en tu viaje de individuación. Selecciona el que mejor refleje tu estado actual de desarrollo interior.
+                Cada emblema representa una etapa en tu evolución como trader. Selecciona el que mejor refleje tu experiencia actual en los mercados y el ajedrez.
               </p>
               
               {/* Selector de Dificultad */}
@@ -64,15 +65,15 @@ export default function ConfiguracionPage() {
               />
 
               <div className="bg-accent rounded-lg p-4 border border-board-border">
-                <h3 className="text-text font-semibold mb-3">Sobre el Sistema de Emblemas</h3>
+                <h3 className="text-text font-semibold mb-3">Sobre el Sistema de Emblemas del Trading</h3>
                 <div className="text-sm text-textMuted space-y-2">
                   <p>
-                    Este sistema combina la <strong>estética Sith de Star Wars</strong> con los principios de la <strong>psicología analítica de Carl Gustav Jung</strong>, 
-                    representando el proceso de individuación de cada participante.
+                    Este sistema combina la <strong>estrategia del ajedrez</strong> con los principios del <strong>trading profesional</strong>, 
+                    representando la evolución de cada trader desde novato hasta maestro.
                   </p>
                   <p>
-                    Cada emblema funciona como un <strong>arquetipo visual y simbólico</strong>, reflejando la etapa del viaje interior de quien lo porta. 
-                    La complejidad del diseño aumenta progresivamente con cada nivel, siguiendo la evolución de la integración psíquica y del dominio personal.
+                    Cada emblema funciona como un <strong>nivel de dominio</strong>, reflejando la experiencia y estrategia de quien lo porta. 
+                    La complejidad del comportamiento de la IA aumenta progresivamente, simulando traders de mayor experiencia y sofisticación estratégica.
                   </p>
                 </div>
               </div>
@@ -85,6 +86,9 @@ export default function ConfiguracionPage() {
               <p className="text-textMuted mb-6">
                 Ajustes básicos del sistema y preferencias de localización.
               </p>
+              
+              {/* Configuración de Audio */}
+              <AudioSettings />
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">

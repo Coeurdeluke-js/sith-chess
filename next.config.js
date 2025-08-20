@@ -4,8 +4,7 @@ const nextConfig = {
     webpackBuildWorker: true
   },
   images: {
-    domains: ['localhost'],
-    unoptimized: false
+    unoptimized: true
   },
   eslint: {
     ignoreDuringBuilds: true

@@ -16,11 +16,8 @@ export default function ChessLayout({
 
   const handleStopGame = useCallback(() => {
     stopGame()
-    // Navegar de vuelta a inicio después de detener el juego
-    setTimeout(() => {
-      router.push('/inicio')
-    }, 300)
-  }, [stopGame, router])
+    // El juego se reiniciará automáticamente en la página de ajedrez
+  }, [stopGame])
 
   return (
     <div className="flex h-screen bg-primary">

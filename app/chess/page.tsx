@@ -3,13 +3,28 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Chess } from 'chess.js'
 import { ChessPiece } from '@/components/ChessPiece'
+import { GameSidebar } from '@/components/GameSidebar'
 import { OpeningModal } from '@/components/OpeningModal'
 import { useGame } from '@/contexts/GameContext'
+import { useAudioContext } from '@/contexts/AudioContext'
 import { AIEngine } from '@/lib/aiEngine'
 import { getDifficultyLevel } from '@/lib/difficultyLevels'
+import { Timer } from 'lucide-react'
 
 export default function ChessGame() {
   const { gameStarted, startNewGame, stopGame, selectedDifficulty } = useGame()
+  const { 
+    playMove, 
+    playCapture, 
+    playCheck, 
+    playCheckmate, 
+    playTimerWarning, 
+    playTimerCritical, 
+    playTimeUp,
+    playPieceSelect,
+    playButtonClick,
+    playGameStart
+  } = useAudioContext()
   const [chess] = useState(() => new Chess())
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [gameOver, setGameOver] = useState(false)
@@ -82,6 +97,7 @@ export default function ChessGame() {
     if (selectedSquare === null) {
       if (piece && piece.color === playerColor) {
         setSelectedSquare(square)
+        playPieceSelect() // Sonido de selección de pieza
       }
       return
     }
@@ -101,8 +117,9 @@ export default function ChessGame() {
     // Si se hace clic en otra pieza del color del jugador, cambiar la selección
     if (piece && piece.color === playerColor) {
       setSelectedSquare(square)
+      playPieceSelect() // Sonido de selección de pieza
     }
-  }, [selectedSquare, validMoves, gameOver, gameStarted, isThinking, chess, playerColor])
+  }, [selectedSquare, validMoves, gameOver, gameStarted, isThinking, chess, playerColor, playPieceSelect])
 
   // Función optimizada para hacer movimientos
   const makeMove = useCallback((from: string, to: string) => {
@@ -130,6 +147,20 @@ export default function ChessGame() {
           setMoves(prev => [...prev, result.san || ''])
           setSelectedSquare(null)
           setAnimatingPiece(null)
+
+          // Reproducir sonidos según el tipo de movimiento
+          if (capturedPiece) {
+            playCapture() // Sonido de captura
+          } else {
+            playMove() // Sonido de movimiento normal
+          }
+
+          // Verificar jaque y jaque mate
+          if (chess.isCheckmate()) {
+            playCheckmate() // Sonido de jaque mate
+          } else if (chess.isCheck()) {
+            playCheck() // Sonido de jaque
+          }
 
           // Actualizar piezas capturadas
           if (capturedPiece) {
@@ -171,9 +202,23 @@ export default function ChessGame() {
                       
                       const result = chess.move(aiMove)
                       if (result) {
-                        setLastMove(`ai-${result.san}`)
+                        setLastMove(`${aiMove.from}-${aiMove.to}`)
                         setMoves(prev => [...prev, result.san || ''])
                         setAnimatingPiece(null)
+
+                        // Reproducir sonidos para movimientos de la IA
+                        if (capturedPiece) {
+                          playCapture() // Sonido de captura
+                        } else {
+                          playMove() // Sonido de movimiento normal
+                        }
+
+                        // Verificar jaque y jaque mate
+                        if (chess.isCheckmate()) {
+                          playCheckmate() // Sonido de jaque mate
+                        } else if (chess.isCheck()) {
+                          playCheck() // Sonido de jaque
+                        }
 
                         if (capturedPiece) {
                           setCapturedPieces(prev => ({
@@ -206,7 +251,7 @@ export default function ChessGame() {
     }
   }, [chess, playerColor, gameOver, gameStarted, aiEngine])
 
-  // Efecto para cambiar automáticamente los mensajes de Sabiduría Sith
+  // Efecto para carrusel automático de mensajes de Sabiduría Sith
   useEffect(() => {
     if (!gameStarted) {
       const interval = setInterval(() => {
@@ -219,63 +264,15 @@ export default function ChessGame() {
           
           setTimeout(() => {
             setIsMessageTransitioning(false)
-          }, 300) // Tiempo para que aparezca el nuevo mensaje
-        }, 300) // Tiempo para que desaparezca el mensaje actual
-      }, 90000) // 90 segundos
+          }, 500) // Tiempo para que aparezca el nuevo mensaje
+        }, 500) // Tiempo para que desaparezca el mensaje actual
+      }, 4000) // 4 segundos entre cada mensaje
 
       return () => clearInterval(interval)
     }
   }, [gameStarted, sithMessages.length])
 
-  // Efecto para el primer movimiento de la IA si el jugador juega con negras
-  useEffect(() => {
-    if (gameStarted && playerColor === 'b' && chess.turn() === 'b' && !gameOver && !isThinking && !animatingPiece && moves.length === 0) {
-      // Solo hacer el primer movimiento de la IA, no continuar automáticamente
-      setTimeout(() => {
-        setIsThinking(true)
-        
-        // Usar el nuevo motor de IA para el primer movimiento
-        const aiMove = aiEngine.selectMove('b')
-        
-        if (aiMove) {
-          setTimeout(() => {
-            const aiPiece = chess.get(aiMove.from as any)
-            if (aiPiece) {
-              // Animar movimiento de la IA
-              setAnimatingPiece({ from: aiMove.from, to: aiMove.to, piece: aiPiece })
-              
-              setTimeout(() => {
-                const capturedPiece = chess.get(aiMove.to as any)
-                
-                const result = chess.move(aiMove)
-                if (result) {
-                  setLastMove(`ai-${result.san}`)
-                  setMoves(prev => [...prev, result.san || ''])
-                  setAnimatingPiece(null)
 
-                  if (capturedPiece) {
-                    setCapturedPieces(prev => ({
-                      ...prev,
-                      [capturedPiece.color === 'w' ? 'white' : 'black']: [
-                        ...prev[capturedPiece.color === 'w' ? 'white' : 'black'],
-                        capturedPiece.type
-                      ]
-                    }))
-                  }
-
-                  if (chess.isGameOver()) {
-                    setGameOver(true)
-                  }
-                }
-              }, 300) // Duración de la animación
-            }
-          }, aiEngine.getMoveDelay()) // Usar el delay específico del nivel
-        }
-        
-        setIsThinking(false)
-      }, 800)
-    }
-  }, [gameStarted, playerColor, chess.turn(), gameOver, isThinking, chess, animatingPiece, moves.length, aiEngine])
 
   // Función para formatear el tiempo en formato MM:SS
   const formatTime = (seconds: number): string => {
@@ -283,6 +280,17 @@ export default function ChessGame() {
     const remainingSeconds = seconds % 60
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
   }
+
+  // Tiempo restante en segundos (cuenta regresiva)
+  const remainingSeconds = useMemo(() => {
+    const total = selectedTimeOption * 60
+    const left = total - gameTime
+    return left > 0 ? left : 0
+  }, [selectedTimeOption, gameTime])
+
+  // Estado para alertas visuales del countdown
+  const [showTimeWarning, setShowTimeWarning] = useState(false)
+  const [showTimeCritical, setShowTimeCritical] = useState(false)
 
   // Función para iniciar el temporizador
   const startTimer = useCallback(() => {
@@ -332,22 +340,66 @@ export default function ChessGame() {
     }
   }, [gameOver, stopTimer])
 
+  // Finalizar la partida cuando el tiempo llegue a cero
+  useEffect(() => {
+    if (gameStarted && timerActive && remainingSeconds === 0 && !gameOver) {
+      playTimeUp() // Sonido de tiempo agotado
+      setGameOver(true)
+      stopTimer()
+    }
+  }, [remainingSeconds, gameStarted, timerActive, gameOver, stopTimer, playTimeUp])
+
+  // Efecto para alertas visuales y sonoras del countdown
+  useEffect(() => {
+    if (gameStarted && timerActive && !gameOver) {
+      if (remainingSeconds <= 10 && remainingSeconds > 0) {
+        setShowTimeCritical(true)
+        setShowTimeWarning(false)
+        // Sonido crítico solo una vez cuando llega a 10 segundos
+        if (remainingSeconds === 10) {
+          playTimerCritical()
+        }
+      } else if (remainingSeconds <= 30 && remainingSeconds > 10) {
+        setShowTimeWarning(true)
+        setShowTimeCritical(false)
+        // Sonido de advertencia solo una vez cuando llega a 30 segundos
+        if (remainingSeconds === 30) {
+          playTimerWarning()
+        }
+      } else {
+        setShowTimeWarning(false)
+        setShowTimeCritical(false)
+      }
+    } else {
+      setShowTimeWarning(false)
+      setShowTimeCritical(false)
+    }
+  }, [remainingSeconds, gameStarted, timerActive, gameOver, playTimerWarning, playTimerCritical])
+
+
+
   // Función para reiniciar el juego
   const resetGame = useCallback(() => {
-    chess.reset()
+    playGameStart() // Sonido de inicio de partida
+    chess.reset() // Esto siempre pone las blancas para empezar
     setSelectedSquare(null)
     setGameOver(false)
     setMoves([])
-    stopGame()
     setLastMove(null)
     setValidMoves(new Set())
     setIsThinking(false)
     setCapturedPieces({ white: [], black: [] })
     setAnimatingPiece(null)
     resetTimer() // Reiniciar también el temporizador
-    // Asignar color aleatorio al jugador
-    setPlayerColor(Math.random() < 0.5 ? 'w' : 'b')
-  }, [chess, stopGame, resetTimer])
+    
+    // Asignar color aleatorio al jugador (w = blancas, b = negras)
+    const randomPlayerColor = Math.random() < 0.5 ? 'w' : 'b'
+    setPlayerColor(randomPlayerColor)
+    
+    // NO hacer el primer movimiento de la IA automáticamente
+    // El juego debe esperar a que el usuario presione Play
+    startTimer()
+  }, [chess, resetTimer, playGameStart, aiEngine, currentDifficulty, playMove, playCheck, startTimer])
 
   // Función para detener el juego sin reiniciar
   const handleStopGame = useCallback(() => {
@@ -356,6 +408,36 @@ export default function ChessGame() {
     stopTimer()
     stopGame()
   }, [stopGame, stopTimer])
+
+  // Efecto para el primer movimiento de la IA cuando el jugador es negro
+  useEffect(() => {
+    if (gameStarted && playerColor === 'b' && chess.turn() === 'w' && moves.length === 0 && !isThinking) {
+      // La IA debe hacer el primer movimiento (juega como blancas)
+      setIsThinking(true)
+      
+      setTimeout(() => {
+        const aiMove = aiEngine.selectMove('w')
+        if (aiMove) {
+          const result = chess.move(aiMove)
+          if (result) {
+            setLastMove(`${aiMove.from}-${aiMove.to}`)
+            setMoves(prev => [...prev, result.san || ''])
+            
+            // Reproducir sonidos para movimientos de la IA
+            playMove()
+            
+            // Verificar jaque
+            if (chess.isCheck()) {
+              playCheck()
+            }
+          }
+        }
+        setIsThinking(false)
+      }, aiEngine.getMoveDelay())
+    }
+  }, [gameStarted, playerColor, chess, moves.length, isThinking, aiEngine, playMove, playCheck])
+
+
 
 
   // Función para obtener el símbolo de una pieza
@@ -418,15 +500,28 @@ export default function ChessGame() {
     setModalShown(true)
   }, [])
 
+  // Función para obtener la coordenada real del tablero según el color del jugador
+  const getRealSquare = useCallback((file: string, rank: string) => {
+    // Para el jugador negro, mantenemos las coordenadas normales
+    // pero rotamos visualmente el tablero
+    return `${file}${rank}`
+  }, [playerColor])
+
+
+
   // Función optimizada para renderizar casillas
   const renderSquare = useCallback((file: string, rank: string) => {
     const square = `${file}${rank}`
     const piece = chess.get(square as any)
+    
+    // Calcular el color de fondo correctamente
     const isLight = (file.charCodeAt(0) - 97 + parseInt(rank)) % 2 === 0
+    
     const isSelected = selectedSquare === square
     const isValidMove = validMoves.has(square)
     const isCapture = isValidMove && piece !== null
-    const isLastMove = lastMove && (lastMove.includes(square) || lastMove.includes(`ai-${square}`))
+    const isLastMove = lastMove && lastMove.includes(square)
+    const isPlayerTurn = chess.turn() === playerColor && gameStarted && !gameOver && !isThinking
     
     // Verificar si esta casilla tiene una pieza animada
     const isAnimatingFrom = animatingPiece && animatingPiece.from === square
@@ -440,10 +535,27 @@ export default function ChessGame() {
     return (
       <div
         key={square}
+        data-square={square}
         className={`chess-square ${bgColor} flex items-center justify-center cursor-pointer relative transition-all duration-300 ease-out hover:scale-105 select-none ${
           isLastMove ? 'animate-pulse' : ''
         }`}
         onClick={() => handleSquareClick(square)}
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'))
+            if (data.from && data.color === playerColor) {
+              handleSquareClick(data.from) // Seleccionar pieza
+              setTimeout(() => handleSquareClick(square), 50) // Hacer movimiento
+            }
+          } catch (error) {
+            console.error('Error parsing drag data:', error)
+          }
+        }}
         data-selected={isSelected}
         data-valid-move={isValidMove && !isCapture}
         data-capture={isCapture}
@@ -457,10 +569,10 @@ export default function ChessGame() {
             isAnimatingFrom ? 'animate-slide-out' : 'animate-slide-in'
           }`}>
             <ChessPiece
-              type={animatingPiece.piece.type}
-              color={animatingPiece.piece.color}
+              piece={animatingPiece.piece}
               isSelected={false}
-              size="xl"
+              isPlayerTurn={false}
+              square={square}
             />
           </div>
         )}
@@ -469,33 +581,41 @@ export default function ChessGame() {
         {piece && !isAnimatingFrom && (
           <div className={animatingPiece && isAnimatingTo ? 'chess-piece-moving' : ''}>
             <ChessPiece
-              type={piece.type}
-              color={piece.color}
+              piece={piece}
               isSelected={isSelected}
-              size="xl"
+              isPlayerTurn={isPlayerTurn}
+              square={square}
+              onDragStart={(e, piece) => {
+                // El data-square ya se pasa como prop
+              }}
             />
           </div>
         )}
         
         {/* Etiquetas de coordenadas */}
         {file === 'a' && (
-          <span className="absolute left-1 top-0 text-xs text-textMuted opacity-50 select-none font-mono">
+          <span className={`absolute text-xs text-textMuted opacity-50 select-none font-mono ${
+            playerColor === 'b' ? 'bottom-1 right-1' : 'left-1 top-0'
+          }`}>
             {rank}
           </span>
         )}
-        {rank === '1' && (
-          <span className="absolute bottom-0 right-1 text-xs text-textMuted opacity-50 select-none font-mono">
+        {rank === (playerColor === 'b' ? '8' : '1') && (
+          <span className={`absolute text-xs text-textMuted opacity-50 select-none font-mono ${
+            playerColor === 'b' ? 'top-1 left-1' : 'bottom-0 right-1'
+          }`}>
             {file}
           </span>
         )}
       </div>
     )
-  }, [selectedSquare, validMoves, lastMove, chess, handleSquareClick, animatingPiece])
+  }, [selectedSquare, validMoves, lastMove, chess, handleSquareClick, animatingPiece, playerColor, gameStarted, gameOver, isThinking])
 
   // Función optimizada para renderizar el tablero
   const renderBoard = useCallback(() => {
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    const ranks = ['8', '7', '6', '5', '4', '3', '2', '1']
+    // Si el jugador es negro, invertir el orden de las filas para que vea las negras abajo
+    const ranks = playerColor === 'b' ? ['1', '2', '3', '4', '5', '6', '7', '8'] : ['8', '7', '6', '5', '4', '3', '2', '1']
 
     return (
       <div className="chess-board grid grid-cols-8 grid-rows-8 w-full h-full border-2 border-board-border shadow-2xl">
@@ -504,7 +624,7 @@ export default function ChessGame() {
         )}
       </div>
     )
-  }, [renderSquare])
+  }, [renderSquare, playerColor])
 
   return (
     <div className="chess-game-container bg-primary select-none mobile-content">
@@ -528,16 +648,19 @@ export default function ChessGame() {
           </div>
         </div>
 
-        {/* Panel derecho - Filosofía Sith o Interfaz de Juego */}
-        <div className="chess-sidebar w-full md:w-80 bg-secondary border-t md:border-t-0 md:border-l border-board-border p-4 md:p-6 flex flex-col mt-4 md:mt-0">
-                     {!gameStarted ? (
-             /* Filosofía Sith - Pantalla completa cuando no hay juego */
-             <div className="game-interface-content">
-              <h3 className="text-text font-semibold mb-6 text-center text-[#ec4d58]">Sabiduría Sith</h3>
-                
+        {/* Panel derecho - Nueva Sidebar Rediseñada */}
+        {!gameStarted ? (
+          /* Pantalla de inicio - Configuración y Filosofía Sith */
+          <div className="chess-sidebar w-full md:w-80 bg-secondary border-t md:border-t-0 md:border-l border-board-border p-4 md:p-6 flex flex-col mt-4 md:mt-0">
+            <div className="text-center space-y-6">
+              <h3 className="text-text font-semibold mb-6 text-center text-[#ec4d58]">Configuración de Partida</h3>
+              
               {/* Selector de Tiempo */}
               <div className="mb-6">
-                <h4 className="text-text font-medium mb-3 text-center">Tiempo de Referencia</h4>
+                <div className="flex items-center justify-center mb-3">
+                  <Timer className="w-5 h-5 text-[#ec4d58] mr-2" />
+                  <span className="text-text font-medium">Duración de la Partida</span>
+                </div>
                 <div className="flex flex-wrap justify-center gap-2">
                   {timeOptions.map((option) => (
                     <button
@@ -553,279 +676,52 @@ export default function ChessGame() {
                     </button>
                   ))}
                 </div>
-              </div>
-
-              <div className="game-interface-scrollable flex items-start justify-center">
-                <div className={`text-center p-4 md:p-6 bg-accent rounded-lg border border-board-border w-full max-w-sm mx-auto ${
-                  isMessageTransitioning ? 'message-fade-out' : 'message-fade-in'
-                }`}>
-                  <p className="text-text font-medium mb-4 leading-relaxed text-sm md:text-base">
-                    {sithMessages[currentMessageIndex]}
-                  </p>
-                  <div className="flex justify-center space-x-2">
-                    {sithMessages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => changeMessage(index)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          index === currentMessageIndex 
-                            ? 'bg-[#ec4d58] scale-125' 
-                            : 'bg-board-border hover:bg-textMuted'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* Interfaz de Juego con Toggle para Sabiduría Sith */
-            <div className="game-interface-content">
-              {/* Toggle para alternar entre Juego y Sabiduría Sith */}
-              <div className="flex-shrink-0 mb-4">
-                <div className="flex bg-accent rounded-lg p-1 border border-board-border">
-                  <button
-                    onClick={() => setShowGameInterface(true)}
-                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 ${
-                      showGameInterface
-                        ? 'bg-[#ec4d58] text-white'
-                        : 'text-textMuted hover:text-text'
-                    }`}
-                  >
-                    Juego
-                  </button>
-                  <button
-                    onClick={() => setShowGameInterface(false)}
-                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 ${
-                      !showGameInterface
-                        ? 'bg-[#ec4d58] text-white'
-                        : 'text-textMuted hover:text-text'
-                    }`}
-                  >
-                    Sabiduría
-                  </button>
+                <div className="mt-2 text-textMuted text-xs">
+                  Tiempo seleccionado: {selectedTimeOption} {selectedTimeOption >= 60 ? 'minutos' : 'segundos'}
                 </div>
               </div>
 
-                             {showGameInterface ? (
-                 /* Interfaz de Juego */
-                 <div className="game-interface-content">
-                   {/* Sección superior fija */}
-                   <div className="flex-shrink-0 space-y-4">
-                    {/* Información del nivel de dificultad */}
-                    <div>
-                      <div className="bg-accent p-3 rounded-lg border border-board-border">
-                        <div className="flex items-center justify-center space-x-2 mb-2">
-                          <div 
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: currentDifficulty.color }}
-                          ></div>
-                          <span className="text-text font-semibold text-sm">
-                            {currentDifficulty.name}
-                          </span>
-                        </div>
-                        <p className="text-textMuted text-xs text-center">
-                          {currentDifficulty.description}
-                        </p>
-                      </div>
-                    </div>
+              <div className="border-t border-board-border pt-4">
+                <h4 className="text-text font-semibold mb-4 text-center text-[#ec4d58]">Sabiduría Sith</h4>
 
-                    {/* Selector de Tiempo */}
-                    <div>
-                      <h3 className="text-text font-semibold mb-3 text-center">Tiempo de Juego</h3>
-                      <div className="bg-accent p-3 rounded-lg border border-board-border">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-textMuted text-sm">Duración:</span>
-                          <span className="text-text font-mono font-semibold text-lg">
-                            {formatTime(gameTime)}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-textMuted text-sm">Referencia:</span>
-                          <span className="text-text font-mono text-sm">
-                            {selectedTimeOption} min
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Estado del juego */}
-                    <div>
-                      <h3 className="text-text font-semibold mb-3 text-center">Estado del Juego</h3>
-                      <div className="h-32 bg-accent rounded-lg border border-board-border flex items-center justify-center">
-                        {gameOver ? (
-                          <div className="text-center animate-fade-in">
-                            <p className="text-text font-semibold mb-2">
-                              {chess.isCheckmate() ? '¡Jaque mate!' : chess.isDraw() ? 'Empate' : 'Fin del juego'}
-                            </p>
-                            {chess.isCheckmate() && (
-                              <p className="text-textMuted text-sm mb-2">
-                                {chess.turn() === playerColor ? 'La IA ha ganado' : '¡Has ganado!'}
-                              </p>
-                            )}
-                            <button
-                              onClick={resetGame}
-                              className="px-4 py-2 bg-board-highlight hover:bg-board-selected text-text font-medium rounded transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-board-highlight focus:ring-opacity-50"
-                            >
-                              Nueva Partida
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="text-center">
-                            <p className={`font-semibold mb-2 ${
-                              chess.turn() === playerColor ? 'text-[#ec4d58]' : 'text-text'
-                            }`}>
-                              {chess.turn() === playerColor ? 'Tu turno' : 'Turno de la IA'}
-                            </p>
-                            {isThinking && (
-                              <div className="flex items-center justify-center space-x-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#ec4d58]"></div>
-                                <span className="text-textMuted text-sm">Pensando...</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Piezas Capturadas - Altura fija */}
-                    <div className="h-32">
-                      <h3 className="text-text font-semibold mb-3 text-center">Piezas Capturadas</h3>
-                      <div className="grid grid-cols-2 gap-4 h-20">
-                        {/* Piezas capturadas por el jugador */}
-                        <div className="bg-accent p-3 rounded-lg border border-board-border overflow-hidden">
-                          <h4 className="text-textMuted text-sm font-medium mb-2 text-center">Tus capturas</h4>
-                          <div className="flex flex-wrap gap-1 justify-center max-h-12 overflow-y-auto">
-                            {capturedPieces.black.map((piece, index) => (
-                              <span key={index} className="text-lg text-[#8a8a8a]">
-                                {getPieceSymbol(piece)}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        {/* Piezas capturadas por la IA */}
-                        <div className="bg-accent p-3 rounded-lg border border-board-border overflow-hidden">
-                          <h4 className="text-textMuted text-sm font-medium mb-2 text-center">Capturas de la IA</h4>
-                          <div className="flex flex-wrap gap-1 justify-center max-h-12 overflow-y-auto">
-                            {capturedPieces.white.map((piece, index) => (
-                              <span key={index} className="text-lg text-[#fafafa]">
-                                {getPieceSymbol(piece)}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                                     {/* Sección de movimientos - Altura fija */}
-                   <div className="game-interface-scrollable">
-                     <h3 className="text-text font-semibold mb-3 text-center">Movimientos</h3>
-                     <div className="bg-accent p-4 rounded-lg border border-board-border h-full overflow-y-auto">
-                      <div className="text-textMuted text-sm font-mono leading-relaxed">
-                        {moves.length > 0 ? (
-                          moves.map((move, index) => {
-                            const moveNumber = Math.floor(index / 2) + 1
-                            const isWhiteMove = index % 2 === 0
-                            const pieceSymbol = getMovePieceSymbol(move, isWhiteMove)
-                            
-                            return (
-                              <div 
-                                key={index} 
-                                className={`mb-2 transition-colors duration-200 ${
-                                  index === moves.length - 1 ? 'text-[#ec4d58] font-semibold' : ''
-                                }`}
-                              >
-                                {isWhiteMove && (
-                                  <span className="inline-block w-8 text-textMuted">
-                                    {moveNumber}.
-                                  </span>
-                                )}
-                                <span className="inline-flex items-center">
-                                  <span className="mr-2 text-lg">
-                                    {pieceSymbol}
-                                  </span>
-                                  <span>{move}</span>
-                                </span>
-                              </div>
-                            )
-                          })
-                        ) : (
-                          <div className="text-center text-textMuted py-8">
-                            <p>No hay movimientos aún</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Información adicional - Altura fija */}
-                  <div className="flex-shrink-0 mt-4 text-center">
-                    <div className="flex items-center justify-center space-x-2 mb-2">
-                      <div className={`w-3 h-3 rounded-full ${playerColor === 'w' ? 'bg-white' : 'bg-gray-400'}`}></div>
-                      <p className="text-textMuted text-xs">
-                        {playerColor === 'w' ? 'Juegas con las piezas blancas' : 'Juegas con las piezas negras'}
-                      </p>
-                    </div>
-                    <p className="text-textMuted text-xs">
-                      Color asignado aleatoriamente
+                <div className="wisdom-carousel flex items-center justify-center">
+                  <div className={`text-center p-4 md:p-6 bg-accent rounded-lg border border-board-border w-full max-w-sm mx-auto ${
+                    isMessageTransitioning ? 'message-fade-out' : 'message-fade-in'
+                  }`}>
+                    <p className="text-text font-medium mb-4 leading-relaxed text-sm md:text-base">
+                      {sithMessages[currentMessageIndex]}
                     </p>
-                  </div>
-                </div>
-                             ) : (
-                 /* Sabiduría Sith - Durante el juego */
-                 <div className="game-interface-content">
-                  <h3 className="text-text font-semibold mb-6 text-center text-[#ec4d58]">Sabiduría Sith</h3>
-                  
-                  {/* Selector de Tiempo */}
-                  <div className="mb-6">
-                    <h4 className="text-text font-medium mb-3 text-center">Tiempo de Referencia</h4>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {timeOptions.map((option) => (
+                    <div className="carousel-indicators">
+                      {sithMessages.map((_, index) => (
                         <button
-                          key={option.value}
-                          onClick={() => setSelectedTimeOption(option.value)}
-                          className={`px-3 py-1 rounded text-sm font-medium transition-all duration-300 ${
-                            selectedTimeOption === option.value
-                              ? 'bg-[#ec4d58] text-white'
-                              : 'bg-accent text-textMuted hover:text-text hover:bg-board-highlight'
+                          key={index}
+                          onClick={() => changeMessage(index)}
+                          className={`carousel-dot ${
+                            index === currentMessageIndex ? 'active' : 'inactive'
                           }`}
-                        >
-                          {option.label}
-                        </button>
+                          aria-label={`Ir al mensaje ${index + 1}`}
+                        />
                       ))}
                     </div>
                   </div>
-
-                  <div className="game-interface-scrollable flex items-start justify-center">
-                    <div className={`text-center p-4 md:p-6 bg-accent rounded-lg border border-board-border w-full max-w-sm mx-auto ${
-                      isMessageTransitioning ? 'message-fade-out' : 'message-fade-in'
-                    }`}>
-                      <p className="text-text font-medium mb-4 leading-relaxed text-sm md:text-base">
-                        {sithMessages[currentMessageIndex]}
-                      </p>
-                      <div className="flex justify-center space-x-2">
-                        {sithMessages.map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => changeMessage(index)}
-                            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                              index === currentMessageIndex 
-                                ? 'bg-[#ec4d58] scale-125' 
-                                : 'bg-board-border hover:bg-textMuted'
-                              }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              )}
+              </div>
             </div>
-          )}
-        </div>
-     </div>
-   </div>
- )
+          </div>
+        ) : (
+          /* Nueva Sidebar de Juego Rediseñada */
+          <GameSidebar
+            gameStarted={gameStarted}
+            remainingSeconds={remainingSeconds}
+            selectedTimeOption={selectedTimeOption}
+            capturedPieces={capturedPieces}
+            playerColor={playerColor}
+            currentTurn={chess.turn()}
+            isThinking={isThinking}
+            gameOver={gameOver}
+          />
+        )}
+      </div>
+    </div>
+  )
 }

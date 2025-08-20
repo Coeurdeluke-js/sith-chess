@@ -29,7 +29,7 @@ export const Sidebar = ({ onNewGame, gameStarted = false, onStopGame }: SidebarP
   }
 
   return (
-    <div className="hidden md:flex w-20 bg-secondary h-full flex-col items-center py-6 border-r border-board-border min-h-screen">
+    <div className="hidden md:flex w-20 bg-secondary h-full flex-col items-center py-6 border-r border-board-border min-h-screen sidebar-container">
       {/* Logo */}
       <div className="mb-8">
         <Image 
