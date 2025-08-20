@@ -13,7 +13,7 @@ export default function ConfiguracionPage() {
   const [activeTab, setActiveTab] = useState('general')
 
   const tabs = [
-    { id: 'emblemas', label: 'Emblemas', icon: User },
+    { id: 'dificultad', label: 'Dificultad de la IA', icon: User },
     { id: 'juego', label: 'Juego', icon: Gamepad2 },
     { id: 'apariencia', label: 'Apariencia', icon: Monitor },
     { id: 'general', label: 'General', icon: Settings }
@@ -22,9 +22,9 @@ export default function ConfiguracionPage() {
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-light text-[#ec4d58] mb-8">Sistema de Emblemas del Trading Sith</h1>
+        <h1 className="text-3xl font-light text-[#ec4d58] mb-8">Sistema de Dificultad de la IA</h1>
         <p className="text-textMuted text-lg mb-8 text-center max-w-2xl mx-auto">
-          Configura tu nivel de dominio en el trading y el ajedrez, donde cada emblema representa una etapa en tu evolución como trader estratégico
+          Configura el nivel de dificultad de la Inteligencia Artificial en el ajedrez, donde cada nivel representa una etapa de complejidad estratégica
         </p>
 
         {/* Pestañas */}
@@ -50,11 +50,11 @@ export default function ConfiguracionPage() {
 
         {/* Contenido de las pestañas */}
         <div className="bg-secondary rounded-lg border border-board-border p-6">
-          {activeTab === 'emblemas' && (
+          {activeTab === 'dificultad' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-text mb-4">Tu Nivel de Dominio en Trading</h2>
+              <h2 className="text-xl font-semibold text-text mb-4">Nivel de Dificultad de la IA</h2>
               <p className="text-textMuted mb-6">
-                Cada emblema representa una etapa en tu evolución como trader. Selecciona el que mejor refleje tu experiencia actual en los mercados y el ajedrez.
+                Cada nivel representa una etapa de complejidad en el comportamiento de la Inteligencia Artificial. Selecciona el que mejor se adapte a tu habilidad en ajedrez.
               </p>
               
               {/* Selector de Dificultad */}
@@ -65,15 +65,15 @@ export default function ConfiguracionPage() {
               />
 
               <div className="bg-accent rounded-lg p-4 border border-board-border">
-                <h3 className="text-text font-semibold mb-3">Sobre el Sistema de Emblemas del Trading</h3>
+                <h3 className="text-text font-semibold mb-3">Sobre el Sistema de Dificultad de la IA</h3>
                 <div className="text-sm text-textMuted space-y-2">
                   <p>
-                    Este sistema combina la <strong>estrategia del ajedrez</strong> con los principios del <strong>trading profesional</strong>, 
-                    representando la evolución de cada trader desde novato hasta maestro.
+                    Este sistema combina la <strong>estrategia del ajedrez</strong> con algoritmos de <strong>Inteligencia Artificial</strong>, 
+                    representando diferentes niveles de complejidad computacional y estratégica.
                   </p>
                   <p>
-                    Cada emblema funciona como un <strong>nivel de dominio</strong>, reflejando la experiencia y estrategia de quien lo porta. 
-                    La complejidad del comportamiento de la IA aumenta progresivamente, simulando traders de mayor experiencia y sofisticación estratégica.
+                    Cada nivel funciona como un <strong>grado de dificultad</strong>, reflejando la capacidad de análisis y la sofisticación de la IA. 
+                    La complejidad del comportamiento aumenta progresivamente, desde movimientos básicos hasta estrategias avanzadas de alto nivel.
                   </p>
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default function ConfiguracionPage() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-text mb-4">Estética Sith</h2>
               <p className="text-textMuted mb-6">
-                Personaliza la apariencia visual para que refleje tu arquetipo y preferencias estéticas.
+                Personaliza la apariencia visual para que refleje tu nivel de dificultad y preferencias estéticas.
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -198,9 +198,9 @@ export default function ConfiguracionPage() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-text mb-4">Configuración del Juego</h2>
               
-              {/* Arquetipo Actual */}
+              {/* Nivel de Dificultad Actual */}
               <div className="bg-accent rounded-lg p-4 border border-board-border mb-6">
-                <h3 className="text-text font-semibold mb-3">Tu Arquetipo Actual</h3>
+                <h3 className="text-text font-semibold mb-3">Tu Nivel de Dificultad Actual</h3>
                 <div className="flex items-center space-x-4">
                   <div className="relative w-12 h-12">
                     <div 
@@ -212,7 +212,7 @@ export default function ConfiguracionPage() {
                     ></div>
                     <Image
                       src={difficultyLevels.find(l => l.id === selectedDifficulty)?.insignia || '/insignias/1-iniciados.png'}
-                      alt="Emblema actual"
+                      alt="Nivel actual"
                       width={48}
                       height={48}
                       className="object-contain relative z-10"
@@ -226,7 +226,7 @@ export default function ConfiguracionPage() {
                       {difficultyLevels.find(l => l.id === selectedDifficulty)?.name || 'Iniciado'}
                     </h4>
                     <p className="text-sm text-textMuted">
-                      {difficultyLevels.find(l => l.id === selectedDifficulty)?.description || 'Descripción del arquetipo'}
+                      {difficultyLevels.find(l => l.id === selectedDifficulty)?.description || 'Descripción del nivel'}
                     </p>
                   </div>
                 </div>

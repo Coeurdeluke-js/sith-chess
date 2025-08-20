@@ -19,9 +19,9 @@ export const DifficultySelector = ({
 
   return (
     <div className={`difficulty-selector ${className}`}>
-      <h3 className="text-text font-semibold mb-4 text-center">Sistema de Emblemas Crypto Force</h3>
+      <h3 className="text-text font-semibold mb-4 text-center">Sistema de Dificultad de la IA</h3>
       <p className="text-textMuted text-sm text-center mb-6">
-        Cada emblema representa una etapa en tu viaje de individuación y dominio interior
+        Cada nivel representa una etapa de complejidad en el comportamiento de la Inteligencia Artificial
       </p>
       
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -41,7 +41,7 @@ export const DifficultySelector = ({
             <div className="flex justify-center mb-3">
               <div className="relative w-16 h-16">
                 <div 
-                  className="absolute inset-0 rounded-full emblema-halo"
+                  className="absolute inset-0 rounded-full nivel-halo"
                   style={{ 
                     backgroundColor: level.color,
                     boxShadow: `0 0 20px ${level.color}40`
@@ -49,7 +49,7 @@ export const DifficultySelector = ({
                 ></div>
                 <Image
                   src={level.insignia}
-                  alt={`Emblema ${level.name}`}
+                  alt={`Nivel ${level.name}`}
                   width={64}
                   height={64}
                   className="object-contain relative z-10"
@@ -80,18 +80,18 @@ export const DifficultySelector = ({
             {/* Tooltip arquetípico */}
             {hoveredDifficulty === level.id && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10">
-                <div className="arquetipo-tooltip rounded-lg p-3 min-w-[250px]">
+                <div className="nivel-tooltip rounded-lg p-3 min-w-[250px]">
                   <div className="flex items-center justify-center mb-3">
                     <div 
                       className="w-3 h-3 rounded-full mr-2"
                       style={{ backgroundColor: level.color }}
                     ></div>
                     <h5 className="text-sm font-bold text-text text-center">
-                      Arquetipo {level.name}
+                      Nivel {level.name}
                     </h5>
                   </div>
                   
-                  {/* Descripción arquetípica */}
+                  {/* Descripción del nivel */}
                   <p className="text-xs text-textMuted mb-3 text-center leading-relaxed">
                     {level.description}
                   </p>

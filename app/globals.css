@@ -701,8 +701,8 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   }
 
-  /* Efectos de halo para emblemas */
-  .emblema-halo {
+  /* Efectos de halo para niveles de dificultad */
+  .nivel-halo {
     animation: haloPulse 2s ease-in-out infinite;
   }
 
@@ -717,8 +717,8 @@
     }
   }
 
-  /* Estilos para tooltips arquetípicos */
-  .arquetipo-tooltip {
+  /* Estilos para tooltips de niveles */
+  .nivel-tooltip {
     background: linear-gradient(135deg, rgba(18, 18, 18, 0.95) 0%, rgba(45, 45, 45, 0.9) 100%);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);

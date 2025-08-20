@@ -401,13 +401,25 @@ export default function ChessGame() {
     startTimer()
   }, [chess, resetTimer, playGameStart, aiEngine, currentDifficulty, playMove, playCheck, startTimer])
 
-  // Función para detener el juego sin reiniciar
+  // Función para detener el juego y resetear tablero
   const handleStopGame = useCallback(() => {
+    // Resetear el tablero a su posición inicial
+    chess.reset()
+    
+    // Limpiar todos los estados del juego
+    setSelectedSquare(null)
+    setGameOver(false)
+    setMoves([])
+    setLastMove(null)
+    setValidMoves(new Set())
     setIsThinking(false)
+    setCapturedPieces({ white: [], black: [] })
     setAnimatingPiece(null)
+    
+    // Parar el timer y el juego
     stopTimer()
     stopGame()
-  }, [stopGame, stopTimer])
+  }, [chess, stopGame, stopTimer])
 
   // Efecto para el primer movimiento de la IA cuando el jugador es negro
   useEffect(() => {
