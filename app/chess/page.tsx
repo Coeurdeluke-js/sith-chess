@@ -39,9 +39,12 @@ export default function ChessGame() {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
   const [isMessageTransitioning, setIsMessageTransitioning] = useState(false)
   const [animatingPiece, setAnimatingPiece] = useState<{ from: string, to: string, piece: any } | null>(null)
-  const [gameTime, setGameTime] = useState<number>(0) // Tiempo transcurrido en segundos
+  // Sistema de tiempo individual por jugador
+  const [whiteTime, setWhiteTime] = useState<number>(0) // Tiempo restante para blancas
+  const [blackTime, setBlackTime] = useState<number>(0) // Tiempo restante para negras
   const [selectedTimeOption, setSelectedTimeOption] = useState<number>(10) // Tiempo seleccionado en minutos
   const [timerActive, setTimerActive] = useState<boolean>(false)
+  const [currentPlayerTurn, setCurrentPlayerTurn] = useState<'w' | 'b'>('w') // Turno actual
   const [showGameInterface, setShowGameInterface] = useState<boolean>(true) // Controla si mostrar interfaz de juego o sabiduría Sith
 
   // Obtener el nivel de dificultad actual
@@ -179,6 +182,9 @@ export default function ChessGame() {
             return
           }
 
+          // Cambiar el turno del jugador
+          setCurrentPlayerTurn(chess.turn())
+
           // Si es turno de la IA, hacer su movimiento usando el nuevo motor
           if (chess.turn() !== playerColor) {
             setTimeout(() => {
@@ -232,6 +238,9 @@ export default function ChessGame() {
 
                         if (chess.isGameOver()) {
                           setGameOver(true)
+                        } else {
+                          // Actualizar el turno después del movimiento de la IA
+                          setCurrentPlayerTurn(chess.turn())
                         }
                       }
                     }, 300) // Duración de la animación de la IA
@@ -281,12 +290,10 @@ export default function ChessGame() {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
-  // Tiempo restante en segundos (cuenta regresiva)
+  // Tiempo restante para el jugador actual
   const remainingSeconds = useMemo(() => {
-    const total = selectedTimeOption * 60
-    const left = total - gameTime
-    return left > 0 ? left : 0
-  }, [selectedTimeOption, gameTime])
+    return currentPlayerTurn === 'w' ? whiteTime : blackTime
+  }, [currentPlayerTurn, whiteTime, blackTime])
 
   // Estado para alertas visuales del countdown
   const [showTimeWarning, setShowTimeWarning] = useState(false)
@@ -294,9 +301,12 @@ export default function ChessGame() {
 
   // Función para iniciar el temporizador
   const startTimer = useCallback(() => {
+    const initialTime = selectedTimeOption * 60 // Convertir minutos a segundos
+    setWhiteTime(initialTime)
+    setBlackTime(initialTime)
+    setCurrentPlayerTurn('w') // Blancas siempre empiezan
     setTimerActive(true)
-    setGameTime(0)
-  }, [])
+  }, [selectedTimeOption])
 
   // Función para detener el temporizador
   const stopTimer = useCallback(() => {
@@ -305,9 +315,12 @@ export default function ChessGame() {
 
   // Función para reiniciar el temporizador
   const resetTimer = useCallback(() => {
-    setGameTime(0)
+    const initialTime = selectedTimeOption * 60
+    setWhiteTime(initialTime)
+    setBlackTime(initialTime)
+    setCurrentPlayerTurn('w')
     setTimerActive(false)
-  }, [])
+  }, [selectedTimeOption])
 
   // Efecto para el temporizador
   useEffect(() => {
@@ -315,7 +328,12 @@ export default function ChessGame() {
     
     if (timerActive && gameStarted && !gameOver) {
       interval = setInterval(() => {
-        setGameTime(prev => prev + 1)
+        // Descontar tiempo del jugador actual
+        if (currentPlayerTurn === 'w') {
+          setWhiteTime(prev => Math.max(0, prev - 1))
+        } else {
+          setBlackTime(prev => Math.max(0, prev - 1))
+        }
       }, 1000)
     }
     
@@ -324,7 +342,7 @@ export default function ChessGame() {
         clearInterval(interval)
       }
     }
-  }, [timerActive, gameStarted, gameOver])
+  }, [timerActive, gameStarted, gameOver, currentPlayerTurn])
 
   // Efecto para iniciar el temporizador cuando comienza el juego
   useEffect(() => {
@@ -340,30 +358,43 @@ export default function ChessGame() {
     }
   }, [gameOver, stopTimer])
 
-  // Finalizar la partida cuando el tiempo llegue a cero
+  // Finalizar la partida cuando un jugador se quede sin tiempo
   useEffect(() => {
-    if (gameStarted && timerActive && remainingSeconds === 0 && !gameOver) {
-      playTimeUp() // Sonido de tiempo agotado
-      setGameOver(true)
-      stopTimer()
+    if (gameStarted && timerActive && !gameOver) {
+      if (whiteTime <= 0) {
+        playTimeUp() // Sonido de tiempo agotado
+        setGameOver(true)
+        stopTimer()
+        // Las negras ganan por tiempo
+        console.log('¡Las negras ganan por tiempo!')
+      } else if (blackTime <= 0) {
+        playTimeUp() // Sonido de tiempo agotado
+        setGameOver(true)
+        stopTimer()
+        // Las blancas ganan por tiempo
+        console.log('¡Las blancas ganan por tiempo!')
+      }
     }
-  }, [remainingSeconds, gameStarted, timerActive, gameOver, stopTimer, playTimeUp])
+  }, [whiteTime, blackTime, gameStarted, timerActive, gameOver, stopTimer, playTimeUp])
 
   // Efecto para alertas visuales y sonoras del countdown
   useEffect(() => {
     if (gameStarted && timerActive && !gameOver) {
-      if (remainingSeconds <= 10 && remainingSeconds > 0) {
+      // Verificar alertas para el jugador actual
+      const currentTime = currentPlayerTurn === 'w' ? whiteTime : blackTime
+      
+      if (currentTime <= 10 && currentTime > 0) {
         setShowTimeCritical(true)
         setShowTimeWarning(false)
         // Sonido crítico solo una vez cuando llega a 10 segundos
-        if (remainingSeconds === 10) {
+        if (currentTime === 10) {
           playTimerCritical()
         }
-      } else if (remainingSeconds <= 30 && remainingSeconds > 10) {
+      } else if (currentTime <= 30 && currentTime > 10) {
         setShowTimeWarning(true)
         setShowTimeCritical(false)
         // Sonido de advertencia solo una vez cuando llega a 30 segundos
-        if (remainingSeconds === 30) {
+        if (currentTime === 30) {
           playTimerWarning()
         }
       } else {
@@ -374,7 +405,7 @@ export default function ChessGame() {
       setShowTimeWarning(false)
       setShowTimeCritical(false)
     }
-  }, [remainingSeconds, gameStarted, timerActive, gameOver, playTimerWarning, playTimerCritical])
+  }, [whiteTime, blackTime, currentPlayerTurn, gameStarted, timerActive, gameOver, playTimerWarning, playTimerCritical])
 
 
 
@@ -398,6 +429,7 @@ export default function ChessGame() {
     
     // NO hacer el primer movimiento de la IA automáticamente
     // El juego debe esperar a que el usuario presione Play
+    setCurrentPlayerTurn('w') // Resetear al turno de las blancas
     startTimer()
   }, [chess, resetTimer, playGameStart, aiEngine, currentDifficulty, playMove, playCheck, startTimer])
 
@@ -415,6 +447,7 @@ export default function ChessGame() {
     setIsThinking(false)
     setCapturedPieces({ white: [], black: [] })
     setAnimatingPiece(null)
+    setCurrentPlayerTurn('w') // Resetear al turno de las blancas
     
     // Parar el timer y el juego
     stopTimer()
@@ -724,11 +757,12 @@ export default function ChessGame() {
           /* Nueva Sidebar de Juego Rediseñada */
           <GameSidebar
             gameStarted={gameStarted}
-            remainingSeconds={remainingSeconds}
+            whiteTime={whiteTime}
+            blackTime={blackTime}
             selectedTimeOption={selectedTimeOption}
             capturedPieces={capturedPieces}
             playerColor={playerColor}
-            currentTurn={chess.turn()}
+            currentTurn={currentPlayerTurn}
             isThinking={isThinking}
             gameOver={gameOver}
           />

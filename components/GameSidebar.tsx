@@ -9,7 +9,8 @@ import Image from 'next/image'
 
 interface GameSidebarProps {
   gameStarted: boolean
-  remainingSeconds: number
+  whiteTime: number
+  blackTime: number
   selectedTimeOption: number
   capturedPieces: { white: string[], black: string[] }
   playerColor: 'w' | 'b'
@@ -20,7 +21,8 @@ interface GameSidebarProps {
 
 export const GameSidebar = ({
   gameStarted,
-  remainingSeconds,
+  whiteTime,
+  blackTime,
   selectedTimeOption,
   capturedPieces,
   playerColor,
@@ -98,16 +100,62 @@ export const GameSidebar = ({
       case 'game':
         return (
           <div className="space-y-6">
-            {/* Tiempo de Juego */}
-            <div className="text-center">
+            {/* Contadores de Tiempo Individuales */}
+            <div className="space-y-3">
               <div className="flex items-center justify-center mb-3">
-                <Clock className="w-8 h-8 text-[#ec4d58]" />
+                <Clock className="w-6 h-6 text-[#ec4d58] mr-2" />
+                <span className="text-sm font-medium text-text">Tiempo por Jugador</span>
               </div>
-              <div className="text-3xl font-bold text-[#ec4d58] mb-2">
-                {formatTime(remainingSeconds)}
+              
+              {/* Tiempo de las Blancas */}
+              <div className={`bg-white border-2 rounded-lg p-3 transition-all duration-300 ${
+                currentTurn === 'w' && !gameOver && !isThinking ? 'border-[#ec4d58] shadow-lg' : 'border-gray-300'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 bg-white border-2 border-gray-400 rounded-full"></div>
+                    <span className="text-xs font-medium text-gray-700">Blancas</span>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    currentTurn === 'w' && !gameOver && !isThinking ? 'bg-[#ec4d58] text-white' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {currentTurn === 'w' && !gameOver && !isThinking ? 'TURNO' : 'ESPERA'}
+                  </span>
+                </div>
+                <div className={`text-2xl font-bold text-center ${
+                  currentTurn === 'w' && !gameOver && !isThinking ? 'text-[#ec4d58]' : 'text-gray-700'
+                }`}>
+                  {formatTime(whiteTime)}
+                </div>
               </div>
-              <div className="text-sm text-textMuted">
-                Límite: {getTimeLabel(selectedTimeOption)}
+
+              {/* Tiempo de las Negras */}
+              <div className={`bg-gray-800 border-2 rounded-lg p-3 transition-all duration-300 ${
+                currentTurn === 'b' && !gameOver && !isThinking ? 'border-[#ec4d58] shadow-lg' : 'border-gray-600'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 bg-gray-800 border-2 border-gray-400 rounded-full"></div>
+                    <span className="text-xs font-medium text-white">Negras</span>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    currentTurn === 'b' && !gameOver && !isThinking ? 'bg-[#ec4d58] text-white' : 'bg-gray-600 text-gray-300'
+                  }`}>
+                    {currentTurn === 'b' && !gameOver && !isThinking ? 'TURNO' : 'ESPERA'}
+                  </span>
+                </div>
+                <div className={`text-2xl font-bold text-center ${
+                  currentTurn === 'b' && !gameOver && !isThinking ? 'text-[#ec4d58]' : 'text-gray-300'
+                }`}>
+                  {formatTime(blackTime)}
+                </div>
+              </div>
+
+              {/* Límite de Tiempo */}
+              <div className="text-center">
+                <div className="text-xs text-textMuted">
+                  Límite: {getTimeLabel(selectedTimeOption)}
+                </div>
               </div>
             </div>
 
