@@ -99,30 +99,30 @@ export const GameSidebar = ({
     switch (activeTab) {
       case 'game':
         return (
-          <div className="space-y-6">
+          <div className="space-y-3 md:space-y-4">
             {/* Contadores de Tiempo Individuales */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-center mb-3">
-                <Clock className="w-6 h-6 text-[#ec4d58] mr-2" />
-                <span className="text-sm font-medium text-text">Tiempo por Jugador</span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-center mb-2">
+                <Clock className="w-4 h-4 md:w-5 md:h-5 text-[#ec4d58] mr-2" />
+                <span className="text-xs font-medium text-text">Tiempo por Jugador</span>
               </div>
               
               {/* Tiempo de las Blancas */}
-              <div className={`bg-white border-2 rounded-lg p-3 transition-all duration-300 ${
+              <div className={`bg-white border-2 rounded-lg p-2 transition-all duration-300 ${
                 currentTurn === 'w' && !gameOver && !isThinking ? 'border-[#ec4d58] shadow-lg' : 'border-gray-300'
               }`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-white border-2 border-gray-400 rounded-full"></div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-white border-2 border-gray-400 rounded-full"></div>
                     <span className="text-xs font-medium text-gray-700">Blancas</span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded ${
+                  <span className={`text-xs px-1 py-0.5 rounded ${
                     currentTurn === 'w' && !gameOver && !isThinking ? 'bg-[#ec4d58] text-white' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {currentTurn === 'w' && !gameOver && !isThinking ? 'TURNO' : 'ESPERA'}
                   </span>
                 </div>
-                <div className={`text-2xl font-bold text-center ${
+                <div className={`text-base font-bold text-center ${
                   currentTurn === 'w' && !gameOver && !isThinking ? 'text-[#ec4d58]' : 'text-gray-700'
                 }`}>
                   {formatTime(whiteTime)}
@@ -130,21 +130,21 @@ export const GameSidebar = ({
               </div>
 
               {/* Tiempo de las Negras */}
-              <div className={`bg-gray-800 border-2 rounded-lg p-3 transition-all duration-300 ${
+              <div className={`bg-gray-800 border-2 rounded-lg p-2 transition-all duration-300 ${
                 currentTurn === 'b' && !gameOver && !isThinking ? 'border-[#ec4d58] shadow-lg' : 'border-gray-600'
               }`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-gray-800 border-2 border-gray-400 rounded-full"></div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-gray-800 border-2 border-gray-400 rounded-full"></div>
                     <span className="text-xs font-medium text-white">Negras</span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded ${
+                  <span className={`text-xs px-1 py-0.5 rounded ${
                     currentTurn === 'b' && !gameOver && !isThinking ? 'bg-[#ec4d58] text-white' : 'bg-gray-600 text-gray-300'
                   }`}>
                     {currentTurn === 'b' && !gameOver && !isThinking ? 'TURNO' : 'ESPERA'}
                   </span>
                 </div>
-                <div className={`text-2xl font-bold text-center ${
+                <div className={`text-base font-bold text-center ${
                   currentTurn === 'b' && !gameOver && !isThinking ? 'text-[#ec4d58]' : 'text-gray-300'
                 }`}>
                   {formatTime(blackTime)}
@@ -160,13 +160,13 @@ export const GameSidebar = ({
             </div>
 
             {/* Indicador de Turno */}
-            <div className="text-center mb-4">
-              <div className="flex items-center justify-center space-x-4 mb-3">
+            <div className="text-center mb-3">
+              <div className="flex items-center justify-center space-x-2 mb-2">
                 {/* Tu Color */}
                 <div className={`flex flex-col items-center space-y-1 transition-all duration-300 ${
                   getCurrentTurn() === playerColor && !gameOver && !isThinking ? 'scale-105' : ''
                 }`}>
-                  <div className={`w-6 h-6 rounded-full transition-all duration-300 ${
+                  <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
                     playerColor === 'w' ? 'bg-white border-2 border-gray-400' : 'bg-gray-800 border-2 border-gray-400'
                   } ${
                     getCurrentTurn() === playerColor && !gameOver && !isThinking ? 'ring-2 ring-[#ec4d58] ring-opacity-50' : ''
@@ -180,7 +180,7 @@ export const GameSidebar = ({
                 
                 {/* Indicador de Turno Actual */}
                 <div className="flex flex-col items-center space-y-1">
-                  <div className={`text-4xl transition-all duration-500 ${
+                  <div className={`text-xl transition-all duration-500 ${
                     isThinking ? 'animate-pulse opacity-60' : 
                     gameOver ? 'opacity-50' : 'animate-pulse scale-110 drop-shadow-lg'
                   }`}>
@@ -192,7 +192,7 @@ export const GameSidebar = ({
                     {getTurnStatus()}
                   </span>
                   {/* Color del turno actual */}
-                  <div className={`w-3 h-3 rounded-full ${
+                  <div className={`w-2 h-2 rounded-full ${
                     getCurrentTurn() === 'w' ? 'bg-white border border-gray-400' : 'bg-gray-800 border border-gray-400'
                   }`}></div>
                 </div>
@@ -216,14 +216,14 @@ export const GameSidebar = ({
             </div>
 
             {/* Piezas Capturadas - Compacto */}
-            <div className="space-y-3">
-              <h4 className="text-text font-semibold text-center text-sm">Piezas Capturadas</h4>
+            <div className="space-y-2">
+              <h4 className="text-text font-semibold text-center text-xs">Piezas Capturadas</h4>
               
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-1">
                 {/* Tus Capturas */}
-                <div className="bg-accent rounded p-2">
+                <div className="bg-accent rounded p-1.5">
                   <h5 className="text-xs font-medium text-textMuted mb-1">Tus capturas</h5>
-                  <div className="flex flex-wrap gap-1 justify-center">
+                  <div className="flex flex-wrap gap-0.5 justify-center">
                     {capturedPieces[playerColor === 'w' ? 'black' : 'white'].map((piece, index) => (
                       <ChessPieceMini
                         key={index}
@@ -239,9 +239,9 @@ export const GameSidebar = ({
                 </div>
 
                 {/* Capturas de la IA */}
-                <div className="bg-accent rounded p-2">
+                <div className="bg-accent rounded p-1.5">
                   <h5 className="text-xs font-medium text-textMuted mb-1">Capturas de la IA</h5>
-                  <div className="flex flex-wrap gap-1 justify-center">
+                  <div className="flex flex-wrap gap-0.5 justify-center">
                     {capturedPieces[playerColor === 'w' ? 'white' : 'black'].map((piece, index) => (
                       <ChessPieceMini
                         key={index}
@@ -262,28 +262,28 @@ export const GameSidebar = ({
 
       case 'philosophy':
         return (
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-3 md:space-y-4">
             <div className="flex items-center justify-center mb-2">
-              <Lightbulb className="w-6 h-6 text-[#ec4d58]" />
+              <Lightbulb className="w-5 h-5 md:w-6 md:h-6 text-[#ec4d58]" />
             </div>
-            <h3 className="text-lg font-semibold text-text mb-3">Filosofía Sith</h3>
+            <h3 className="text-base md:text-lg font-semibold text-text mb-2 md:mb-3">Filosofía Sith</h3>
             
             {/* Card principal de filosofía - Ocupa más espacio */}
-            <div className="bg-accent rounded-lg p-4 min-h-[180px] flex flex-col items-center justify-center border border-board-border">
-              <div className="mb-3">
-                <div className="w-3 h-3 bg-[#ec4d58] rounded-full mx-auto mb-2"></div>
+            <div className="bg-accent rounded-lg p-3 md:p-4 min-h-[140px] md:min-h-[180px] flex flex-col items-center justify-center border border-board-border">
+              <div className="mb-2 md:mb-3">
+                <div className="w-2 h-2 md:w-3 md:h-3 bg-[#ec4d58] rounded-full mx-auto mb-1 md:mb-2"></div>
               </div>
-              <p className="text-text leading-relaxed text-sm font-medium px-2">
+              <p className="text-text leading-relaxed text-xs md:text-sm font-medium px-1 md:px-2">
                 {sithPhilosophy[currentTipIndex]}
               </p>
             </div>
             
             {/* Indicadores del carrusel mejorados */}
-            <div className="flex justify-center space-x-3">
+            <div className="flex justify-center space-x-2 md:space-x-3">
               {sithPhilosophy.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
                     index === currentTipIndex 
                       ? 'bg-[#ec4d58] scale-125 shadow-lg shadow-[#ec4d58]/30' 
                       : 'bg-accent hover:bg-gray-400'
@@ -301,57 +301,57 @@ export const GameSidebar = ({
 
       case 'difficulty':
         return (
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center mb-3">
-              <Trophy className="w-6 h-6 text-[#ec4d58]" />
+          <div className="text-center space-y-3 md:space-y-4">
+            <div className="flex items-center justify-center mb-2 md:mb-3">
+              <Trophy className="w-5 h-5 md:w-6 md:h-6 text-[#ec4d58]" />
             </div>
-            <h3 className="text-base font-semibold text-text mb-3">Dificultad de la IA</h3>
+            <h3 className="text-sm md:text-base font-semibold text-text mb-2 md:mb-3">Dificultad de la IA</h3>
             
             {/* Insignia */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-3 md:mb-4">
               <div className="relative">
                 <Image
                   src={difficultyLevel.insignia}
                   alt={difficultyLevel.name}
-                  width={80}
-                  height={80}
-                  className="rounded-full"
+                  width={60}
+                  height={60}
+                  className="rounded-full md:w-20 md:h-20"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full" />
               </div>
             </div>
 
             {/* Información del Nivel */}
-            <div className="bg-accent rounded-lg p-4">
-              <h4 className="text-lg font-bold text-[#ec4d58] mb-2">
+            <div className="bg-accent rounded-lg p-3 md:p-4">
+              <h4 className="text-base md:text-lg font-bold text-[#ec4d58] mb-1 md:mb-2">
                 {difficultyLevel.name}
               </h4>
-              <p className="text-textMuted text-sm leading-relaxed">
+              <p className="text-textMuted text-xs md:text-sm leading-relaxed">
                 {difficultyLevel.description}
               </p>
             </div>
 
             {/* Estadísticas de IA */}
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="bg-accent rounded p-2">
+            <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs">
+              <div className="bg-accent rounded p-1.5 md:p-2">
                 <div className="text-textMuted">Agresividad</div>
                 <div className="text-text font-semibold">
                   {Math.round(difficultyLevel.aiBehavior.aggression * 100)}%
                 </div>
               </div>
-              <div className="bg-accent rounded p-2">
+              <div className="bg-accent rounded p-1.5 md:p-2">
                 <div className="text-textMuted">Defensiva</div>
                 <div className="text-text font-semibold">
                   {Math.round(difficultyLevel.aiBehavior.defensive * 100)}%
                 </div>
               </div>
-              <div className="bg-accent rounded p-2">
+              <div className="bg-accent rounded p-1.5 md:p-2">
                 <div className="text-textMuted">Táctica</div>
                 <div className="text-text font-semibold">
                   {Math.round(difficultyLevel.aiBehavior.tactical * 100)}%
                 </div>
               </div>
-              <div className="bg-accent rounded p-2">
+              <div className="bg-accent rounded p-1.5 md:p-2">
                 <div className="text-textMuted">Aleatoriedad</div>
                 <div className="text-text font-semibold">
                   {Math.round(difficultyLevel.aiBehavior.randomness * 100)}%
@@ -360,8 +360,8 @@ export const GameSidebar = ({
             </div>
 
             {/* Información adicional */}
-            <div className="bg-accent rounded-lg p-3">
-              <h5 className="text-text font-medium mb-2">Comportamiento de la IA</h5>
+            <div className="bg-accent rounded-lg p-2 md:p-3">
+              <h5 className="text-text font-medium mb-1 md:mb-2 text-sm">Comportamiento de la IA</h5>
               <p className="text-textMuted text-xs">
                 Esta IA juega con un nivel de búsqueda de {difficultyLevel.aiBehavior.searchDepth} movimientos adelante.
                 {difficultyLevel.aiBehavior.moveDelay.min > 0 && (
@@ -378,41 +378,41 @@ export const GameSidebar = ({
   }
 
   return (
-    <div className="chess-sidebar w-full md:w-80 bg-secondary border-t md:border-t-0 md:border-l border-board-border p-4 md:p-6 flex flex-col mt-4 md:mt-0">
-      {/* Tabs con Iconos - Solo 3 */}
-      <div className="flex justify-center space-x-2 mb-6">
+    <div className="chess-sidebar w-full md:w-80 bg-secondary border-t md:border-t-0 md:border-l border-board-border p-2 md:p-6 flex flex-col mt-2 md:mt-0">
+      {/* Tabs con Iconos - Solo 3 - Compactos */}
+      <div className="flex justify-center space-x-1 mb-3 md:mb-6">
         <button
           onClick={() => setActiveTab('game')}
-          className={`p-3 rounded-lg transition-all duration-300 ${
+          className={`p-1.5 md:p-3 rounded-lg transition-all duration-300 ${
             activeTab === 'game'
               ? 'bg-[#ec4d58] text-white'
               : 'bg-accent text-textMuted hover:text-text hover:bg-board-highlight'
           }`}
           title="Juego"
         >
-          <Clock className="w-5 h-5" />
+          <Clock className="w-3 h-3 md:w-5 md:h-5" />
         </button>
         <button
           onClick={() => setActiveTab('philosophy')}
-          className={`p-3 rounded-lg transition-all duration-300 ${
+          className={`p-1.5 md:p-3 rounded-lg transition-all duration-300 ${
             activeTab === 'philosophy'
               ? 'bg-[#ec4d58] text-white'
               : 'bg-accent text-textMuted hover:text-text hover:bg-board-highlight'
           }`}
           title="Filosofía Sith"
         >
-          <Lightbulb className="w-5 h-5" />
+          <Lightbulb className="w-3 h-3 md:w-5 md:h-5" />
         </button>
         <button
           onClick={() => setActiveTab('difficulty')}
-          className={`p-3 rounded-lg transition-all duration-300 ${
+          className={`p-2 md:p-3 rounded-lg transition-all duration-300 ${
             activeTab === 'difficulty'
               ? 'bg-[#ec4d58] text-white'
               : 'bg-accent text-textMuted hover:text-text hover:bg-board-highlight'
           }`}
           title="Dificultad de la IA"
         >
-          <Trophy className="w-5 h-5" />
+          <Trophy className="w-3 h-3 md:w-5 md:h-5" />
         </button>
       </div>
 

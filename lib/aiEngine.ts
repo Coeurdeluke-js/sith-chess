@@ -64,7 +64,14 @@ export class AIEngine {
       } else {
         // Si el movimiento seleccionado no es válido, usar uno aleatorio
         console.log('Movimiento seleccionado no válido, usando aleatorio')
-        return this.selectRandomMove(aiMoves)
+        // Filtrar solo movimientos válidos antes de seleccionar uno aleatorio
+        const validMoves = aiMoves.filter(move => this.isValidMove(move))
+        if (validMoves.length > 0) {
+          return this.selectRandomMove(validMoves)
+        } else {
+          console.log('No hay movimientos válidos después del filtrado')
+          return null
+        }
       }
     } catch (error) {
       console.error('Error en selectMove:', error)
@@ -88,12 +95,14 @@ export class AIEngine {
     try {
       // Verificar que las coordenadas sean válidas
       if (!move.from || !move.to || !move.piece) {
+        console.log('Movimiento inválido: coordenadas faltantes', move)
         return false
       }
 
       // Verificar que la pieza existe en la posición de origen
       const piece = this.chess.get(move.from as any)
       if (!piece || piece.type !== move.piece) {
+        console.log('Movimiento inválido: pieza no encontrada o tipo incorrecto', { move, piece })
         return false
       }
 
@@ -104,6 +113,10 @@ export class AIEngine {
         validMove.to === move.to && 
         validMove.piece === move.piece
       )
+
+      if (!isValid) {
+        console.log('Movimiento no está en la lista de movimientos válidos', { move, validMoves: validMoves.slice(0, 5) })
+      }
 
       return isValid
     } catch (error) {

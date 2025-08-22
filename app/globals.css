@@ -29,6 +29,9 @@
     aspect-ratio: 1;
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
   }
 
   .chess-piece {
@@ -50,11 +53,14 @@
   .board-container {
     max-width: 90vh;
     max-height: 90vh;
-    width: 90vh;
-    height: 90vh;
-    min-width: 600px;
-    min-height: 600px;
+    width: 100%;
+    height: 100%;
+    min-width: 280px;
+    min-height: 280px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .sidebar-icon {
@@ -294,8 +300,10 @@
   .chess-board {
     width: 100% !important;
     height: 100% !important;
-    min-width: 600px !important;
-    min-height: 600px !important;
+    min-width: 300px !important;
+    min-height: 300px !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
     flex-shrink: 0 !important;
   }
 
@@ -309,13 +317,16 @@
   @media (max-width: 767px) {
     .sidebar-container {
       display: none !important;
-    }
-  }
+      }
+}
 
+@layer utilities {
   /* Prevenir desplazamiento del tablero */
   .chess-game-container {
     height: 100vh !important;
     overflow: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
   }
 
   .chess-board-area {
@@ -326,6 +337,9 @@
     min-height: 0;
     overflow: hidden;
     position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0.5rem;
   }
 
   /* Asegurar que el panel derecho mantenga su altura */
@@ -334,6 +348,116 @@
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
+    max-width: 320px;
+    min-width: 280px;
+  }
+
+  /* Responsividad para dispositivos móviles */
+  @media (max-width: 768px) {
+    .chess-game-container {
+      height: calc(100vh - 80px) !important; /* Restar altura de la downbar */
+      flex-direction: column !important;
+    }
+    
+    .chess-board-area {
+      padding: 0.25rem !important;
+      min-height: 250px;
+      width: 100%;
+      height: 100%;
+      order: 1;
+    }
+    
+    .chess-sidebar {
+      padding: 0.5rem !important;
+      margin-top: 0.25rem !important;
+      height: auto;
+      max-height: 40vh;
+      width: 100% !important;
+      max-width: 100% !important;
+      order: 2;
+    }
+    
+    .chess-square {
+      min-width: 30px;
+      min-height: 30px;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .chess-square[data-selected="true"] {
+      box-shadow: inset 0 0 0 2px #ec4d58;
+    }
+    
+    .chess-square[data-valid-move="true"]::before {
+      width: 25%;
+      height: 25%;
+    }
+
+    .chess-piece svg {
+      width: 75% !important;
+      height: 75% !important;
+      max-width: 90% !important;
+      max-height: 90% !important;
+    }
+    
+    /* Asegurar que el tablero se vea completo en móviles */
+    .board-container {
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: 100% !important;
+      height: auto !important;
+      aspect-ratio: 1;
+    }
+    
+    .chess-board {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+    }
+  }
+    .chess-game-container {
+      height: calc(100vh - 80px) !important; /* Restar altura de la downbar */
+    }
+    
+    .chess-board-area {
+      padding: 0.25rem !important;
+      min-height: 250px;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .chess-sidebar {
+      padding: 0.5rem !important;
+      margin-top: 0.25rem !important;
+      height: auto;
+      max-height: 40vh;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    .chess-square {
+      min-width: 30px;
+      min-height: 30px;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .chess-square[data-selected="true"] {
+      box-shadow: inset 0 0 0 2px #ec4d58;
+    }
+    
+    .chess-square[data-valid-move="true"]::before {
+      width: 25%;
+      height: 25%;
+    }
+
+    .chess-piece svg {
+      width: 75% !important;
+      height: 75% !important;
+      max-width: 90% !important;
+      max-height: 90% !important;
+    }
   }
 
   /* Prevenir cambios de altura en el contenido del juego */
@@ -351,11 +475,12 @@
 
   /* Ajustes específicos para piezas SVG */
   .chess-piece svg {
-    width: 80% !important;
-    height: 80% !important;
-    max-width: 90% !important;
-    max-height: 90% !important;
+    width: 85% !important;
+    height: 85% !important;
+    max-width: 95% !important;
+    max-height: 95% !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    object-fit: contain;
   }
 
   /* Efectos especiales para piezas seleccionadas */
@@ -610,7 +735,7 @@
 
   /* Responsive tweaks */
   @media (max-width: 768px) {
-  .board-container {
+    .board-container {
       min-width: 300px;
       min-height: 300px;
       width: 90vw;
@@ -725,4 +850,4 @@
     border: 1px solid rgba(236, 77, 88, 0.3);
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
   }
-} 
+}

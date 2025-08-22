@@ -38,7 +38,7 @@ export default function ChessGame() {
   const [lastMove, setLastMove] = useState<string | null>(null)
   const [validMoves, setValidMoves] = useState<Set<string>>(new Set())
   const [capturedPieces, setCapturedPieces] = useState<{ white: string[], black: string[] }>({ white: [], black: [] })
-  const [playerColor, setPlayerColor] = useState<'w' | 'b'>(() => Math.random() < 0.5 ? 'w' : 'b')
+  const [playerColor, setPlayerColor] = useState<'w' | 'b'>('w') // Valor inicial fijo
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
   const [isMessageTransitioning, setIsMessageTransitioning] = useState(false)
   const [animatingPiece, setAnimatingPiece] = useState<{ from: string, to: string, piece: any } | null>(null)
@@ -76,6 +76,11 @@ export default function ChessGame() {
 
   // Crear instancia del motor de IA
   const aiEngine = useMemo(() => new AIEngine(chess, currentDifficulty), [chess, currentDifficulty])
+
+  // Asignar color del jugador después de la hidratación para evitar errores SSR
+  useEffect(() => {
+    setPlayerColor(Math.random() < 0.5 ? 'w' : 'b')
+  }, [])
 
   // Memoizar movimientos válidos para mejor rendimiento
   const currentValidMoves = useMemo(() => {
