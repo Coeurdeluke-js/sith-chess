@@ -4,7 +4,8 @@ import { Home, RefreshCw, Settings, HelpCircle, Play, Square, Image as ImageIcon
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLogoTransition } from '@/contexts/LogoTransitionContext'
+import { useRouter, usePathname } from 'next/navigation'
 
 interface SidebarProps {
   onNewGame: () => void
@@ -15,6 +16,8 @@ interface SidebarProps {
 export const Sidebar = ({ onNewGame, gameStarted = false, onStopGame }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const router = useRouter()
+  const pathname = usePathname()
+  const { startLogoTransition } = useLogoTransition()
 
   const sidebarItems = [
     { icon: Home, label: 'Inicio', description: 'Página principal del ecosistema', href: '/inicio' },
@@ -24,8 +27,17 @@ export const Sidebar = ({ onNewGame, gameStarted = false, onStopGame }: SidebarP
   ]
 
   const handlePlayClick = () => {
-    onNewGame()
-    router.push('/chess')
+    // Si estamos en la página de inicio, hacer transición de logos y navegar
+    if (pathname === '/inicio') {
+      startLogoTransition()
+      // Simular transición de logos
+      setTimeout(() => {
+        router.push('/chess')
+      }, 1500) // 1.5 segundos para la transición
+    } else {
+      // Si estamos en /chess, iniciar la partida
+      onNewGame()
+    }
   }
 
   return (
@@ -54,8 +66,10 @@ export const Sidebar = ({ onNewGame, gameStarted = false, onStopGame }: SidebarP
         ) : (
           <button
             onClick={handlePlayClick}
-            className="w-12 h-12 bg-[#ec4d58] hover:bg-[#d13d48] rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110"
-            title="Jugar Ajedrez"
+            className={`w-12 h-12 bg-[#ec4d58] hover:bg-[#d13d48] rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
+              pathname === '/chess' ? 'animate-pulse shadow-lg shadow-[#ec4d58]/30' : ''
+            }`}
+            title={pathname === '/chess' ? 'Haz click para iniciar la partida' : 'Jugar Ajedrez'}
           >
             <Play className="w-6 h-6 text-white" />
           </button>

@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { GameProvider } from '@/contexts/GameContext'
 import { AudioProvider } from '@/contexts/AudioContext'
+import { LogoTransitionProvider } from '@/contexts/LogoTransitionContext'
+import { LogoTransitionWrapper } from '@/components/LogoTransitionWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,7 +28,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <AudioProvider>
           <GameProvider>
-            {children}
+            <LogoTransitionProvider>
+              {children}
+              <LogoTransitionWrapper />
+            </LogoTransitionProvider>
           </GameProvider>
         </AudioProvider>
       </body>

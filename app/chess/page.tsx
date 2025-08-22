@@ -5,6 +5,7 @@ import { Chess } from 'chess.js'
 import { ChessPiece } from '@/components/ChessPiece'
 import { GameSidebar } from '@/components/GameSidebar'
 import { OpeningModal } from '@/components/OpeningModal'
+import { PromotionModal } from '@/components/PromotionModal'
 import { useGame } from '@/contexts/GameContext'
 import { useAudioContext } from '@/contexts/AudioContext'
 import { AIEngine } from '@/lib/aiEngine'
@@ -32,6 +33,8 @@ export default function ChessGame() {
   const [showOpeningModal, setShowOpeningModal] = useState(true)
   const [modalShown, setModalShown] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
+  const [showPromotionModal, setShowPromotionModal] = useState(false)
+  const [pendingPromotion, setPendingPromotion] = useState<{ from: string, to: string } | null>(null)
   const [lastMove, setLastMove] = useState<string | null>(null)
   const [validMoves, setValidMoves] = useState<Set<string>>(new Set())
   const [capturedPieces, setCapturedPieces] = useState<{ white: string[], black: string[] }>({ white: [], black: [] })
@@ -79,8 +82,18 @@ export default function ChessGame() {
     if (!selectedSquare || !gameStarted) return new Set()
     try {
       const moves = chess.moves({ square: selectedSquare as any, verbose: true })
+      
+      // Debug: Log de movimientos válidos para verificar capturas
+      if (moves.length > 0) {
+        const piece = chess.get(selectedSquare as any)
+        if (piece && piece.type === 'p') {
+          console.log(`Movimientos válidos para peón en ${selectedSquare}:`, moves.map(m => `${m.from}-${m.to} (${m.san})`))
+        }
+      }
+      
       return new Set(moves.map((move: any) => move.to))
-    } catch {
+    } catch (error) {
+      console.error('Error obteniendo movimientos válidos:', error)
       return new Set()
     }
   }, [selectedSquare, chess, gameStarted])
@@ -135,10 +148,22 @@ export default function ChessGame() {
       
       // Esperar a que termine la animación antes de hacer el movimiento real
       setTimeout(() => {
+        // Verificar si es una promoción de peón
+        const isPromotion = piece.type === 'p' && 
+          ((piece.color === 'w' && to[1] === '8') || (piece.color === 'b' && to[1] === '1'))
+        
+        if (isPromotion) {
+          // Mostrar modal de promoción
+          setPendingPromotion({ from, to })
+          setShowPromotionModal(true)
+          setAnimatingPiece(null)
+          return
+        }
+        
         const move = {
           from,
           to,
-          promotion: 'q' // Siempre promover a reina para simplicidad
+          promotion: undefined
         }
 
         // Verificar si hay una pieza en la casilla de destino (captura)
@@ -204,44 +229,66 @@ export default function ChessGame() {
                     setAnimatingPiece({ from: aiMove.from, to: aiMove.to, piece: aiPiece })
                     
                     setTimeout(() => {
-                      const capturedPiece = chess.get(aiMove.to as any)
-                      
-                      const result = chess.move(aiMove)
-                      if (result) {
-                        setLastMove(`${aiMove.from}-${aiMove.to}`)
-                        setMoves(prev => [...prev, result.san || ''])
-                        setAnimatingPiece(null)
+                      try {
+                        const capturedPiece = chess.get(aiMove.to as any)
+                        
+                        // Verificar que el movimiento sea válido antes de ejecutarlo
+                        const validMoves = chess.moves({ verbose: true }) as any[]
+                        const isValidMove = validMoves.some(move => 
+                          move.from === aiMove.from && 
+                          move.to === aiMove.to && 
+                          move.piece === aiMove.piece
+                        )
 
-                        // Reproducir sonidos para movimientos de la IA
-                        if (capturedPiece) {
-                          playCapture() // Sonido de captura
-                        } else {
-                          playMove() // Sonido de movimiento normal
+                        if (!isValidMove) {
+                          console.error('Movimiento de IA inválido:', aiMove)
+                          console.log('Movimientos válidos disponibles:', validMoves)
+                          setIsThinking(false)
+                          return
                         }
 
-                        // Verificar jaque y jaque mate
-                        if (chess.isCheckmate()) {
-                          playCheckmate() // Sonido de jaque mate
-                        } else if (chess.isCheck()) {
-                          playCheck() // Sonido de jaque
-                        }
+                        const result = chess.move(aiMove)
+                        if (result) {
+                          setLastMove(`${aiMove.from}-${aiMove.to}`)
+                          setMoves(prev => [...prev, result.san || ''])
+                          setAnimatingPiece(null)
 
-                        if (capturedPiece) {
-                          setCapturedPieces(prev => ({
-                            ...prev,
-                            [capturedPiece.color === 'w' ? 'white' : 'black']: [
-                              ...prev[capturedPiece.color === 'w' ? 'white' : 'black'],
-                              capturedPiece.type
-                            ]
-                          }))
-                        }
+                          // Reproducir sonidos para movimientos de la IA
+                          if (capturedPiece) {
+                            playCapture() // Sonido de captura
+                          } else {
+                            playMove() // Sonido de movimiento normal
+                          }
 
-                        if (chess.isGameOver()) {
-                          setGameOver(true)
-                        } else {
-                          // Actualizar el turno después del movimiento de la IA
-                          setCurrentPlayerTurn(chess.turn())
+                          // Verificar jaque y jaque mate
+                          if (chess.isCheckmate()) {
+                            playCheckmate() // Sonido de jaque mate
+                          } else if (chess.isCheck()) {
+                            playCheck() // Sonido de jaque
+                          }
+
+                          if (capturedPiece) {
+                            setCapturedPieces(prev => ({
+                              ...prev,
+                              [capturedPiece.color === 'w' ? 'white' : 'black']: [
+                                ...prev[capturedPiece.color === 'w' ? 'white' : 'black'],
+                                capturedPiece.type
+                              ]
+                            }))
+                          }
+
+                          if (chess.isGameOver()) {
+                            setGameOver(true)
+                          } else {
+                            // Actualizar el turno después del movimiento de la IA
+                            setCurrentPlayerTurn(chess.turn())
+                          }
                         }
+                      } catch (error) {
+                        console.error('Error en movimiento de IA:', error)
+                        console.log('Movimiento problemático:', aiMove)
+                        console.log('Estado del tablero:', chess.fen())
+                        setIsThinking(false)
                       }
                     }, 300) // Duración de la animación de la IA
                   }
@@ -275,7 +322,7 @@ export default function ChessGame() {
             setIsMessageTransitioning(false)
           }, 500) // Tiempo para que aparezca el nuevo mensaje
         }, 500) // Tiempo para que desaparezca el mensaje actual
-      }, 4000) // 4 segundos entre cada mensaje
+      }, 6000) // 6 segundos entre cada mensaje
 
       return () => clearInterval(interval)
     }
@@ -539,6 +586,129 @@ export default function ChessGame() {
     }, 300)
   }
 
+  // Función de debug para verificar el estado del tablero
+  const debugBoardState = useCallback(() => {
+    console.log('=== ESTADO DEL TABLERO ===')
+    console.log('Turno actual:', chess.turn())
+    console.log('Color del jugador:', playerColor)
+    console.log('Juego iniciado:', gameStarted)
+    console.log('Juego terminado:', gameOver)
+    console.log('Pensando:', isThinking)
+    console.log('Casilla seleccionada:', selectedSquare)
+    console.log('Movimientos válidos:', Array.from(validMoves))
+    console.log('FEN del tablero:', chess.fen())
+    console.log('========================')
+  }, [chess, playerColor, gameStarted, gameOver, isThinking, selectedSquare, validMoves])
+
+  // Función para manejar la promoción de peones
+  const handlePromotion = useCallback((promotionType: 'q' | 'r' | 'b' | 'n') => {
+    if (!pendingPromotion) return
+
+    const move = {
+      from: pendingPromotion.from,
+      to: pendingPromotion.to,
+      promotion: promotionType
+    }
+
+    try {
+      const result = chess.move(move)
+      if (result) {
+        setLastMove(`${pendingPromotion.from}-${pendingPromotion.to}`)
+        setMoves(prev => [...prev, result.san || ''])
+        setSelectedSquare(null)
+
+        // Reproducir sonido de movimiento
+        playMove()
+
+        // Verificar jaque y jaque mate
+        if (chess.isCheckmate()) {
+          playCheckmate()
+          setGameOver(true)
+          return
+        } else if (chess.isCheck()) {
+          playCheck()
+        }
+
+        // Verificar fin del juego
+        if (chess.isGameOver()) {
+          setGameOver(true)
+          return
+        }
+
+        // Cambiar el turno del jugador
+        setCurrentPlayerTurn(chess.turn())
+
+        // Si es turno de la IA, hacer su movimiento
+        if (chess.turn() !== playerColor) {
+          setTimeout(() => {
+            const aiColor = playerColor === 'w' ? 'b' : 'w'
+            if (gameOver || chess.turn() !== aiColor || !gameStarted) return
+
+            setIsThinking(true)
+            
+            const aiMove = aiEngine.selectMove(aiColor)
+            
+            if (aiMove) {
+              setTimeout(() => {
+                const aiPiece = chess.get(aiMove.from as any)
+                if (aiPiece) {
+                  setAnimatingPiece({ from: aiMove.from, to: aiMove.to, piece: aiPiece })
+                  
+                  setTimeout(() => {
+                    const capturedPiece = chess.get(aiMove.to as any)
+                    
+                    const result = chess.move(aiMove)
+                    if (result) {
+                      setLastMove(`${aiMove.from}-${aiMove.to}`)
+                      setMoves(prev => [...prev, result.san || ''])
+                      setAnimatingPiece(null)
+
+                      if (capturedPiece) {
+                        playCapture()
+                      } else {
+                        playMove()
+                      }
+
+                      if (chess.isCheckmate()) {
+                        playCheckmate()
+                      } else if (chess.isCheck()) {
+                        playCheck()
+                      }
+
+                      if (capturedPiece) {
+                        setCapturedPieces(prev => ({
+                          ...prev,
+                          [capturedPiece.color === 'w' ? 'white' : 'black']: [
+                            ...prev[capturedPiece.color === 'w' ? 'white' : 'black'],
+                            capturedPiece.type
+                          ]
+                        }))
+                      }
+
+                      if (chess.isGameOver()) {
+                        setGameOver(true)
+                      } else {
+                        setCurrentPlayerTurn(chess.turn())
+                      }
+                    }
+                  }, 300)
+                }
+              }, aiEngine.getMoveDelay())
+            }
+            
+            setIsThinking(false)
+          }, 600)
+        }
+      }
+    } catch (error) {
+      console.error('Error en promoción:', error)
+    }
+
+    // Cerrar modal y limpiar estado
+    setShowPromotionModal(false)
+    setPendingPromotion(null)
+  }, [pendingPromotion, chess, playMove, playCheck, playCheckmate, playerColor, gameOver, gameStarted, aiEngine])
+
   // Función para cerrar modal de apertura
   const handleOpeningModalClose = useCallback(() => {
     setShowOpeningModal(false)
@@ -690,6 +860,17 @@ export default function ChessGame() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ec4d58]"></div>
               </div>
             )}
+
+            {/* Botón de debug temporal */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={debugBoardState}
+                className="absolute top-4 left-4 bg-blue-500 text-white px-2 py-1 rounded text-xs"
+                title="Debug del tablero"
+              >
+                Debug
+              </button>
+            )}
           </div>
         </div>
 
@@ -768,6 +949,13 @@ export default function ChessGame() {
           />
         )}
       </div>
+
+      {/* Modal de Promoción de Peones */}
+      <PromotionModal
+        isVisible={showPromotionModal}
+        playerColor={playerColor}
+        onSelectPiece={handlePromotion}
+      />
     </div>
   )
 }

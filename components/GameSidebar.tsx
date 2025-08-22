@@ -79,7 +79,7 @@ export const GameSidebar = ({
     if (activeTab === 'philosophy' && gameStarted) {
       const interval = setInterval(() => {
         setCurrentTipIndex((prev) => (prev + 1) % sithPhilosophy.length)
-      }, 6000)
+      }, 8000) // 8 segundos para dar más tiempo a leer cada consejo
       return () => clearInterval(interval)
     }
   }, [activeTab, gameStarted, sithPhilosophy.length])
@@ -262,25 +262,39 @@ export const GameSidebar = ({
 
       case 'philosophy':
         return (
-          <div className="text-center space-y-6">
-            <div className="flex items-center justify-center mb-3">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center mb-2">
               <Lightbulb className="w-6 h-6 text-[#ec4d58]" />
             </div>
-            <h3 className="text-base font-semibold text-text mb-3">Filosofía Sith</h3>
-            <div className="bg-accent rounded-lg p-3 min-h-[100px] flex items-center justify-center">
-              <p className="text-text leading-relaxed text-xs">
+            <h3 className="text-lg font-semibold text-text mb-3">Filosofía Sith</h3>
+            
+            {/* Card principal de filosofía - Ocupa más espacio */}
+            <div className="bg-accent rounded-lg p-4 min-h-[180px] flex flex-col items-center justify-center border border-board-border">
+              <div className="mb-3">
+                <div className="w-3 h-3 bg-[#ec4d58] rounded-full mx-auto mb-2"></div>
+              </div>
+              <p className="text-text leading-relaxed text-sm font-medium px-2">
                 {sithPhilosophy[currentTipIndex]}
               </p>
             </div>
-            <div className="flex justify-center space-x-2">
+            
+            {/* Indicadores del carrusel mejorados */}
+            <div className="flex justify-center space-x-3">
               {sithPhilosophy.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentTipIndex ? 'bg-[#ec4d58]' : 'bg-accent'
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentTipIndex 
+                      ? 'bg-[#ec4d58] scale-125 shadow-lg shadow-[#ec4d58]/30' 
+                      : 'bg-accent hover:bg-gray-400'
                   }`}
                 />
               ))}
+            </div>
+            
+            {/* Contador de consejos */}
+            <div className="text-xs text-textMuted">
+              Consejo {currentTipIndex + 1} de {sithPhilosophy.length}
             </div>
           </div>
         )
