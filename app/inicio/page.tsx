@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Shield, Gamepad2, BookOpen, Users } from 'lucide-react'
 
 export default function InicioPage() {
@@ -13,6 +14,8 @@ export default function InicioPage() {
     { id: 'aprendizaje', label: 'Aprendizaje', icon: BookOpen },
     { id: 'comunidad', label: 'Comunidad', icon: Users }
   ]
+
+
 
   const renderContent = () => {
     switch (activeTab) {

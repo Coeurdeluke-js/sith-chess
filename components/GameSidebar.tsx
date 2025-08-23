@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Clock, Lightbulb, Trophy } from 'lucide-react'
+import { Clock, Lightbulb, Trophy, ChevronLeft, ChevronRight, RotateCcw, RotateCw } from 'lucide-react'
 import { useGame } from '@/contexts/GameContext'
 import { getDifficultyLevel } from '@/lib/difficultyLevels'
 import { ChessPieceMini } from './ChessPieceMini'
@@ -17,6 +17,13 @@ interface GameSidebarProps {
   currentTurn: 'w' | 'b'
   isThinking: boolean
   gameOver: boolean
+  moveHistory?: Array<{
+    number: number
+    white: { move: string; time: number; timestamp: number } | null
+    black: { move: string; time: number; timestamp: number } | null
+  }>
+  currentMoveIndex?: number
+  onMoveNavigate?: (index: number) => void
 }
 
 export const GameSidebar = ({
@@ -28,7 +35,10 @@ export const GameSidebar = ({
   playerColor,
   currentTurn,
   isThinking,
-  gameOver
+  gameOver,
+  moveHistory = [],
+  currentMoveIndex = -1,
+  onMoveNavigate
 }: GameSidebarProps) => {
   const { selectedDifficulty } = useGame()
   const [activeTab, setActiveTab] = useState<'game' | 'philosophy' | 'difficulty'>('game')
@@ -90,10 +100,21 @@ export const GameSidebar = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  const formatMoveTime = (seconds: number) => {
+    if (seconds < 60) {
+      return `${seconds}s`
+    }
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   const getTimeLabel = (seconds: number) => {
     if (seconds >= 60) return `${Math.floor(seconds / 60)} min`
     return `${seconds}s`
   }
+
+
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -158,6 +179,65 @@ export const GameSidebar = ({
                 </div>
               </div>
             </div>
+
+            {/* Registro de Jugadas */}
+            {moveHistory && moveHistory.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-center mb-2">
+                  <Trophy className="w-4 h-4 md:w-5 md:h-5 text-[#ec4d58] mr-2" />
+                  <span className="text-xs font-medium text-text">Registro de Jugadas</span>
+                </div>
+                
+                <div className="moves-list">
+                  {moveHistory.map((entry, index) => (
+                    <div key={index} className={`move-entry ${index === currentMoveIndex ? 'current' : ''}`}>
+                      <div className="move-number">{entry.number}.</div>
+                      <div className="move-white">
+                        {entry.white ? entry.white.move : ''}
+                      </div>
+                      <div className="move-black">
+                        {entry.black ? entry.black.move : ''}
+                      </div>
+                      <div className="move-time">
+                        {entry.white && formatMoveTime(entry.white.time)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Controles de Navegación */}
+                <div className="move-controls">
+                  <button 
+                    className="move-control-btn"
+                    onClick={() => onMoveNavigate?.(0)}
+                    disabled={currentMoveIndex === 0}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </button>
+                  <button 
+                    className="move-control-btn"
+                    onClick={() => onMoveNavigate?.(Math.max(0, currentMoveIndex - 1))}
+                    disabled={currentMoveIndex <= 0}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button 
+                    className="move-control-btn"
+                    onClick={() => onMoveNavigate?.(Math.min(moveHistory.length - 1, currentMoveIndex + 1))}
+                    disabled={currentMoveIndex >= moveHistory.length - 1}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button 
+                    className="move-control-btn"
+                    onClick={() => onMoveNavigate?.(moveHistory.length - 1)}
+                    disabled={currentMoveIndex === moveHistory.length - 1}
+                  >
+                    <RotateCw className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Indicador de Turno */}
             <div className="text-center mb-3">

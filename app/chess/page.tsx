@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Chess } from 'chess.js'
 import { ChessPiece } from '@/components/ChessPiece'
 import { GameSidebar } from '@/components/GameSidebar'
@@ -9,23 +9,24 @@ import { PromotionModal } from '@/components/PromotionModal'
 import { useGame } from '@/contexts/GameContext'
 import { useAudioContext } from '@/contexts/AudioContext'
 import { AIEngine } from '@/lib/aiEngine'
-import { getDifficultyLevel } from '@/lib/difficultyLevels'
-import { Timer } from 'lucide-react'
+import { getDifficultyLevel, difficultyLevels } from '@/lib/difficultyLevels'
+import { Timer, ChevronLeft, ChevronRight, RotateCcw, RotateCw, Search, Download, Share2 } from 'lucide-react'
 
 export default function ChessGame() {
   const { gameStarted, startNewGame, stopGame, selectedDifficulty } = useGame()
-  const { 
-    playMove, 
-    playCapture, 
-    playCheck, 
-    playCheckmate, 
-    playTimerWarning, 
-    playTimerCritical, 
-    playTimeUp,
-    playPieceSelect,
-    playButtonClick,
-    playGameStart
-  } = useAudioContext()
+  // Audio functionality temporarily disabled
+  // const { 
+  //   playMove, 
+  //   playCapture, 
+  //   playCheck, 
+  //   playCheckmate, 
+  //   playTimerWarning, 
+  //   playTimerCritical, 
+  //   playTimeUp,
+  //   playPieceSelect,
+  //   playButtonClick,
+  //   playGameStart
+  // } = useAudioContext()
   const [chess] = useState(() => new Chess())
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [gameOver, setGameOver] = useState(false)
@@ -49,9 +50,16 @@ export default function ChessGame() {
   const [timerActive, setTimerActive] = useState<boolean>(false)
   const [currentPlayerTurn, setCurrentPlayerTurn] = useState<'w' | 'b'>('w') // Turno actual
   const [showGameInterface, setShowGameInterface] = useState<boolean>(true) // Controla si mostrar interfaz de juego o sabiduría Sith
-
-  // Obtener el nivel de dificultad actual
-  const currentDifficulty = getDifficultyLevel(selectedDifficulty)
+  
+  // Nuevos estados para el registro de jugadas y tracking de tiempo
+  const [moveHistory, setMoveHistory] = useState<Array<{
+    number: number
+    white: { move: string; time: number; timestamp: number } | null
+    black: { move: string; time: number; timestamp: number } | null
+  }>>([])
+  const [currentMoveIndex, setCurrentMoveIndex] = useState(-1)
+  const [showDifficultyMenu, setShowDifficultyMenu] = useState(false)
+  const difficultyMenuRef = useRef<HTMLDivElement>(null)
 
   // Mensajes filosóficos Sith
   const sithMessages = [
@@ -74,8 +82,23 @@ export default function ChessGame() {
     { value: 60, label: '1 hora' }
   ]
 
+  // Obtener el nivel de dificultad actual con fallback
+  const currentDifficulty = useMemo(() => {
+    const difficulty = getDifficultyLevel(selectedDifficulty || 'warrior')
+    return difficulty
+  }, [selectedDifficulty])
+
   // Crear instancia del motor de IA
-  const aiEngine = useMemo(() => new AIEngine(chess, currentDifficulty), [chess, currentDifficulty])
+  const aiEngine = useMemo(() => {
+    if (!currentDifficulty) {
+      return null
+    }
+    try {
+      return new AIEngine(chess, currentDifficulty)
+    } catch (error) {
+      return null
+    }
+  }, [chess, currentDifficulty])
 
   // Asignar color del jugador después de la hidratación para evitar errores SSR
   useEffect(() => {
@@ -87,6 +110,12 @@ export default function ChessGame() {
     if (!selectedSquare || !gameStarted) return new Set()
     try {
       const moves = chess.moves({ square: selectedSquare as any, verbose: true })
+      
+      // Verificar que moves sea un array válido
+      if (!moves || !Array.isArray(moves)) {
+        console.warn('chess.moves() returned invalid result:', moves)
+        return new Set()
+      }
       
       // Debug: Log de movimientos válidos para verificar capturas
       if (moves.length > 0) {
@@ -118,7 +147,7 @@ export default function ChessGame() {
     if (selectedSquare === null) {
       if (piece && piece.color === playerColor) {
         setSelectedSquare(square)
-        playPieceSelect() // Sonido de selección de pieza
+        // playPieceSelect() // Sonido de selección de pieza
       }
       return
     }
@@ -138,9 +167,9 @@ export default function ChessGame() {
     // Si se hace clic en otra pieza del color del jugador, cambiar la selección
     if (piece && piece.color === playerColor) {
       setSelectedSquare(square)
-      playPieceSelect() // Sonido de selección de pieza
+      // playPieceSelect() // Sonido de selección de pieza
     }
-  }, [selectedSquare, validMoves, gameOver, gameStarted, isThinking, chess, playerColor, playPieceSelect])
+  }, [selectedSquare, validMoves, gameOver, gameStarted, isThinking, chess, playerColor])
 
   // Función optimizada para hacer movimientos
   const makeMove = useCallback((from: string, to: string) => {
@@ -181,18 +210,22 @@ export default function ChessGame() {
           setSelectedSquare(null)
           setAnimatingPiece(null)
 
+          // Registrar jugada con tiempo
+          const timeUsed = selectedTimeOption * 60 - (currentPlayerTurn === 'w' ? whiteTime : blackTime)
+          recordMove(result.san || '', currentPlayerTurn, timeUsed)
+
           // Reproducir sonidos según el tipo de movimiento
           if (capturedPiece) {
-            playCapture() // Sonido de captura
+            // playCapture() // Sonido de captura
           } else {
-            playMove() // Sonido de movimiento normal
+            // playMove() // Sonido de movimiento normal
           }
 
           // Verificar jaque y jaque mate
           if (chess.isCheckmate()) {
-            playCheckmate() // Sonido de jaque mate
+            // playCheckmate() // Sonido de jaque mate
           } else if (chess.isCheck()) {
-            playCheck() // Sonido de jaque
+            // playCheck() // Sonido de jaque
           }
 
           // Actualizar piezas capturadas
@@ -224,6 +257,11 @@ export default function ChessGame() {
               setIsThinking(true)
               
               // Usar el nuevo motor de IA
+              if (!aiEngine) {
+                console.error('AI Engine not available')
+                setIsThinking(false)
+                return
+              }
               const aiMove = aiEngine.selectMove(aiColor)
               
               if (aiMove) {
@@ -258,18 +296,22 @@ export default function ChessGame() {
                           setMoves(prev => [...prev, result.san || ''])
                           setAnimatingPiece(null)
 
+                          // Registrar jugada de la IA con tiempo
+                          const timeUsed = selectedTimeOption * 60 - (currentPlayerTurn === 'w' ? whiteTime : blackTime)
+                          recordMove(result.san || '', aiColor, timeUsed)
+
                           // Reproducir sonidos para movimientos de la IA
                           if (capturedPiece) {
-                            playCapture() // Sonido de captura
+                            // playCapture() // Sonido de captura
                           } else {
-                            playMove() // Sonido de movimiento normal
+                            // playMove() // Sonido de movimiento normal
                           }
 
                           // Verificar jaque y jaque mate
                           if (chess.isCheckmate()) {
-                            playCheckmate() // Sonido de jaque mate
+                            // playCheckmate() // Sonido de jaque mate
                           } else if (chess.isCheck()) {
-                            playCheck() // Sonido de jaque
+                            // playCheck() // Sonido de jaque
                           }
 
                           if (capturedPiece) {
@@ -297,7 +339,7 @@ export default function ChessGame() {
                       }
                     }, 300) // Duración de la animación de la IA
                   }
-                }, aiEngine.getMoveDelay()) // Usar el delay específico del nivel
+                }, aiEngine?.getMoveDelay() || 1000) // Usar el delay específico del nivel
               }
               
               setIsThinking(false)
@@ -335,12 +377,7 @@ export default function ChessGame() {
 
 
 
-  // Función para formatear el tiempo en formato MM:SS
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
+
 
   // Tiempo restante para el jugador actual
   const remainingSeconds = useMemo(() => {
@@ -414,20 +451,20 @@ export default function ChessGame() {
   useEffect(() => {
     if (gameStarted && timerActive && !gameOver) {
       if (whiteTime <= 0) {
-        playTimeUp() // Sonido de tiempo agotado
+        // playTimeUp() // Sonido de tiempo agotado
         setGameOver(true)
         stopTimer()
         // Las negras ganan por tiempo
         console.log('¡Las negras ganan por tiempo!')
       } else if (blackTime <= 0) {
-        playTimeUp() // Sonido de tiempo agotado
+        // playTimeUp() // Sonido de tiempo agotado
         setGameOver(true)
         stopTimer()
         // Las blancas ganan por tiempo
         console.log('¡Las blancas ganan por tiempo!')
       }
     }
-  }, [whiteTime, blackTime, gameStarted, timerActive, gameOver, stopTimer, playTimeUp])
+  }, [whiteTime, blackTime, gameStarted, timerActive, gameOver, stopTimer])
 
   // Efecto para alertas visuales y sonoras del countdown
   useEffect(() => {
@@ -440,14 +477,14 @@ export default function ChessGame() {
         setShowTimeWarning(false)
         // Sonido crítico solo una vez cuando llega a 10 segundos
         if (currentTime === 10) {
-          playTimerCritical()
+          // playTimerCritical()
         }
       } else if (currentTime <= 30 && currentTime > 10) {
         setShowTimeWarning(true)
         setShowTimeCritical(false)
         // Sonido de advertencia solo una vez cuando llega a 30 segundos
         if (currentTime === 30) {
-          playTimerWarning()
+          // playTimerWarning()
         }
       } else {
         setShowTimeWarning(false)
@@ -457,13 +494,13 @@ export default function ChessGame() {
       setShowTimeWarning(false)
       setShowTimeCritical(false)
     }
-  }, [whiteTime, blackTime, currentPlayerTurn, gameStarted, timerActive, gameOver, playTimerWarning, playTimerCritical])
+  }, [whiteTime, blackTime, currentPlayerTurn, gameStarted, timerActive, gameOver])
 
 
 
   // Función para reiniciar el juego
   const resetGame = useCallback(() => {
-    playGameStart() // Sonido de inicio de partida
+    // playGameStart() // Sonido de inicio de partida
     chess.reset() // Esto siempre pone las blancas para empezar
     setSelectedSquare(null)
     setGameOver(false)
@@ -483,7 +520,57 @@ export default function ChessGame() {
     // El juego debe esperar a que el usuario presione Play
     setCurrentPlayerTurn('w') // Resetear al turno de las blancas
     startTimer()
-  }, [chess, resetTimer, playGameStart, aiEngine, currentDifficulty, playMove, playCheck, startTimer])
+    
+    // Resetear historial de jugadas
+    setMoveHistory([])
+    setCurrentMoveIndex(-1)
+  }, [chess, resetTimer, aiEngine, currentDifficulty, startTimer])
+
+  // Función para registrar una jugada con tiempo
+  const recordMove = useCallback((move: string, color: 'w' | 'b', timeUsed: number) => {
+    const moveNumber = Math.floor(moveHistory.length / 2) + 1
+    const isWhiteMove = color === 'w'
+    
+    setMoveHistory(prev => {
+      const newHistory = [...prev]
+      
+      if (isWhiteMove) {
+        // Nueva jugada de blancas
+        newHistory.push({
+          number: moveNumber,
+          white: { move, time: timeUsed, timestamp: Date.now() },
+          black: null
+        })
+      } else {
+        // Completar jugada de negras
+        const lastEntry = newHistory[newHistory.length - 1]
+        if (lastEntry && !lastEntry.black) {
+          lastEntry.black = { move, time: timeUsed, timestamp: Date.now() }
+        }
+      }
+      
+      return newHistory
+    })
+    
+    setCurrentMoveIndex(moveHistory.length)
+  }, [moveHistory])
+
+  // Función para formatear tiempo
+  const formatTime = useCallback((seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }, [])
+
+  // Función para formatear tiempo de jugada
+  const formatMoveTime = useCallback((seconds: number): string => {
+    if (seconds < 60) {
+      return `${seconds}s`
+    }
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }, [])
 
   // Función para detener el juego y resetear tablero
   const handleStopGame = useCallback(() => {
@@ -508,9 +595,15 @@ export default function ChessGame() {
 
   // Efecto para el primer movimiento de la IA cuando el jugador es negro
   useEffect(() => {
-    if (gameStarted && playerColor === 'b' && chess.turn() === 'w' && moves.length === 0 && !isThinking) {
+    if (gameStarted && playerColor === 'b' && chess.turn() === 'w' && moves && moves.length === 0 && !isThinking) {
       // La IA debe hacer el primer movimiento (juega como blancas)
       setIsThinking(true)
+      
+      if (!aiEngine) {
+        console.error('AI Engine not available')
+        setIsThinking(false)
+        return
+      }
       
       setTimeout(() => {
         const aiMove = aiEngine.selectMove('w')
@@ -521,18 +614,18 @@ export default function ChessGame() {
             setMoves(prev => [...prev, result.san || ''])
             
             // Reproducir sonidos para movimientos de la IA
-            playMove()
+            // playMove()
             
             // Verificar jaque
             if (chess.isCheck()) {
-              playCheck()
+              // playCheck()
             }
           }
         }
         setIsThinking(false)
-      }, aiEngine.getMoveDelay())
+      }, aiEngine?.getMoveDelay() || 1000)
     }
-  }, [gameStarted, playerColor, chess, moves.length, isThinking, aiEngine, playMove, playCheck])
+  }, [gameStarted, playerColor, chess, moves, isThinking, aiEngine])
 
 
 
@@ -623,15 +716,15 @@ export default function ChessGame() {
         setSelectedSquare(null)
 
         // Reproducir sonido de movimiento
-        playMove()
+        // playMove()
 
         // Verificar jaque y jaque mate
         if (chess.isCheckmate()) {
-          playCheckmate()
+          // playCheckmate()
           setGameOver(true)
           return
         } else if (chess.isCheck()) {
-          playCheck()
+          // playCheck()
         }
 
         // Verificar fin del juego
@@ -651,6 +744,11 @@ export default function ChessGame() {
 
             setIsThinking(true)
             
+            if (!aiEngine) {
+              console.error('AI Engine not available')
+              setIsThinking(false)
+              return
+            }
             const aiMove = aiEngine.selectMove(aiColor)
             
             if (aiMove) {
@@ -669,15 +767,15 @@ export default function ChessGame() {
                       setAnimatingPiece(null)
 
                       if (capturedPiece) {
-                        playCapture()
+                        // playCapture()
                       } else {
-                        playMove()
+                        // playMove()
                       }
 
                       if (chess.isCheckmate()) {
-                        playCheckmate()
+                        // playCheckmate()
                       } else if (chess.isCheck()) {
-                        playCheck()
+                        // playCheck()
                       }
 
                       if (capturedPiece) {
@@ -698,7 +796,7 @@ export default function ChessGame() {
                     }
                   }, 300)
                 }
-              }, aiEngine.getMoveDelay())
+              }, aiEngine?.getMoveDelay() || 1000)
             }
             
             setIsThinking(false)
@@ -712,7 +810,7 @@ export default function ChessGame() {
     // Cerrar modal y limpiar estado
     setShowPromotionModal(false)
     setPendingPromotion(null)
-  }, [pendingPromotion, chess, playMove, playCheck, playCheckmate, playerColor, gameOver, gameStarted, aiEngine])
+  }, [pendingPromotion, chess, playerColor, gameOver, gameStarted, aiEngine])
 
   // Función para cerrar modal de apertura
   const handleOpeningModalClose = useCallback(() => {
@@ -856,6 +954,55 @@ export default function ChessGame() {
       <div className="flex h-full flex-col md:flex-row">
         {/* Contenido principal - Tablero centrado */}
         <div className="chess-board-area p-3 md:p-6">
+          {/* Información del jugador superior (IA) */}
+          {gameStarted && (
+            <div className="player-info mb-4">
+              <div 
+                className="player-avatar relative"
+                onClick={() => setShowDifficultyMenu(!showDifficultyMenu)}
+              >
+                <img 
+                  src={currentDifficulty.insignia} 
+                  alt={`IA ${currentDifficulty.name}`}
+                  className="w-full h-full"
+                />
+                
+                {/* Micro-menú de dificultad */}
+                {showDifficultyMenu && (
+                  <div className="difficulty-menu show">
+                    {difficultyLevels.map((difficulty) => (
+                      <div
+                        key={difficulty.id}
+                        className={`difficulty-option ${difficulty.id === selectedDifficulty ? 'selected' : ''}`}
+                        onClick={() => {
+                          // Aquí se cambiaría la dificultad
+                          setShowDifficultyMenu(false)
+                        }}
+                      >
+                        <img 
+                          src={difficulty.insignia} 
+                          alt={difficulty.name}
+                          className="difficulty-icon"
+                        />
+                        <div className="difficulty-info">
+                          <div className="difficulty-name">{difficulty.name}</div>
+                          <div className="difficulty-description">{difficulty.description}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+                             <div className="player-details">
+                 <div className="player-name">IA {currentDifficulty.name}</div>
+                 <div className="player-rating">Dificultad {currentDifficulty.id}</div>
+               </div>
+              <div className={`player-timer ${blackTime <= 30 ? 'warning' : ''} ${blackTime <= 10 ? 'critical' : ''}`}>
+                {formatTime(blackTime)}
+              </div>
+            </div>
+          )}
+
           <div className="board-container relative">
             {renderBoard()}
             
@@ -877,6 +1024,26 @@ export default function ChessGame() {
               </button>
             )}
           </div>
+
+          {/* Información del jugador inferior (Usuario) */}
+          {gameStarted && (
+            <div className="player-info mt-4">
+              <div className="player-avatar">
+                <img 
+                  src="/logo-sith-chess.png" 
+                  alt="Tu perfil"
+                  className="w-full h-full"
+                />
+              </div>
+              <div className="player-details">
+                <div className="player-name">Tú ({playerColor === 'w' ? 'Blancas' : 'Negras'})</div>
+                <div className="player-rating">Jugador</div>
+              </div>
+              <div className={`player-timer ${whiteTime <= 30 ? 'warning' : ''} ${whiteTime <= 10 ? 'critical' : ''}`}>
+                {formatTime(whiteTime)}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Panel derecho - Nueva Sidebar Rediseñada */}
@@ -949,6 +1116,9 @@ export default function ChessGame() {
             capturedPieces={capturedPieces}
             playerColor={playerColor}
             currentTurn={currentPlayerTurn}
+            moveHistory={moveHistory}
+            currentMoveIndex={currentMoveIndex}
+            onMoveNavigate={(index) => setCurrentMoveIndex(index)}
             isThinking={isThinking}
             gameOver={gameOver}
           />
